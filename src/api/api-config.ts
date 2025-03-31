@@ -18,7 +18,7 @@ export class AppConfig {
     let tempPath = this.cfgPath;
     try {
       if (!(await FsUtils.pathExist(this.cfgPath))) {
-        tempPath = path.join(rootPath, 'resources', 'config.json');
+        tempPath = path.join(rootPath, 'resources', 'config_default.json');
       }
 
       let json;
