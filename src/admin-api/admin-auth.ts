@@ -24,6 +24,14 @@ export const devAdminAuth = async (req: ServerRequest, res: ServerResponse) => {
     ApiHelper.sendJson(req, res, response);
     return true;
   }
+  if (!process.env['DEV_ADMIN_PASS']) {
+    const response = {
+      status: 'error',
+      message: langHelper.getLang('shared:name_not_set', { name: 'DEV_ADMIN_PASS' }),
+    };
+    ApiHelper.sendJson(req, res, response);
+    return true;
+  }
 
   // TODO: secure and httpOnly cookies
   const data = req.locals.json();
