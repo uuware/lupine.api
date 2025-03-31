@@ -68,7 +68,7 @@ export const loadCSV = async (db: Db, lines: string[]) => {
     } else {
       try {
         const row = JSON.parse(lines[i]);
-        const r = await db.query(insSql, row);
+        const r = await db.execute(insSql, row);
         result[table].succeeded++;
       } catch (error: any) {
         result[table].failed++;

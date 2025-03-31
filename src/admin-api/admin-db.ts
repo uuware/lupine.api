@@ -86,7 +86,7 @@ export class AdminDb implements IApiBase {
     const tables = await db.getAllTableNames();
     if (tables && tables.length > 0) {
       for (const i in tables) {
-        await db.query(`DROP TABLE ${tables[i]}`);
+        await db.execute(`DROP TABLE ${tables[i]}`);
       }
     }
 
@@ -175,7 +175,7 @@ export class AdminDb implements IApiBase {
       result: '',
     };
     if (tableName) {
-      const result = await db.query(`DROP TABLE ${tableName}`);
+      const result = await db.execute(`DROP TABLE ${tableName}`);
       response.result = result;
       response.status = 'ok';
     }
@@ -209,7 +209,8 @@ export class AdminDb implements IApiBase {
       result: '',
     };
     if (data && !Array.isArray(data) && data.sql) {
-      const result = await db.query(data.sql as string);
+      const sql = (data.sql as string || '').trim();
+      const result = sql.toUpperCase().startsWith('SELECT') ? await db.select(sql) : await db.execute(sql);
       response.status = 'ok';
       response.message = 'Executed sql.';
       response.result = result;
@@ -237,7 +238,7 @@ export class AdminDb implements IApiBase {
       const oneSql = sqlArr[one].trim();
       if (oneSql) {
         try {
-          const one = await db.query(oneSql);
+          const one = await db.execute(oneSql);
           result.push(one);
         } catch (error: any) {
           result.push({ error: error.message });

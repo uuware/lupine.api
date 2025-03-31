@@ -43,7 +43,7 @@ export class Db {
     throw new Error('Method not implemented');
   }
 
-  protected nativeQuery(sql: string, params?: any, addReturning?: boolean): Promise<any> {
+  protected nativeQuery(sql: string, params?: any, isSelect?: boolean): Promise<any> {
     throw new Error('Method not implemented');
   }
 
@@ -51,15 +51,23 @@ export class Db {
     throw new Error('Method not implemented');
   }
 
-  public async query(sql: string, params?: any, addReturning?: boolean) {
-    try {
-      const fixedSql = this.replacePrefix(sql);
-      return await this.nativeQuery(fixedSql, params, addReturning);
-    } catch (err) {
-      console.log(err);
-      throw err;
-    }
+  public async select(sql: string, params?: any) {
+    const fixedSql = this.replacePrefix(sql);
+    return await this.nativeQuery(fixedSql, params, false);
   }
+  public async execute(sql: string, params?: any) {
+    const fixedSql = this.replacePrefix(sql);
+    return await this.nativeQuery(fixedSql, params, true);
+  }
+  // public async query(sql: string, params?: any, addReturning?: boolean) {
+  //   try {
+  //     const fixedSql = this.replacePrefix(sql);
+  //     return await this.nativeQuery(fixedSql, params, addReturning);
+  //   } catch (err) {
+  //     console.log(err);
+  //     throw err;
+  //   }
+  // }
 
   // public replacePrefixXX(tableName: string, fromPrefix?: string) {
   //   if (!fromPrefix) {
@@ -191,7 +199,7 @@ export class Db {
     if (typeof offset === 'number' && !isNaN(offset)) {
       base.sql += ' OFFSET ' + offset;
     }
-    return await this.query(base.sql, base.params);
+    return await this.select(base.sql, base.params);
   }
 
   public async selectOneRow(
@@ -210,7 +218,7 @@ export class Db {
 
   public async selectOneResult(table: string, field: string, whereFieldValues?: DbFieldValue) {
     const base = this.selectBaseSql(table, [field], whereFieldValues);
-    const result = await this.query(base.sql, base.params);
+    const result = await this.select(base.sql, base.params);
     if (result && Array.isArray(result)) {
       return result[0][Object.keys(result[0])[0]];
     }
@@ -224,7 +232,7 @@ export class Db {
     const values = Array(fields.length).fill('?').join(',');
     let sql = 'INSERT INTO ' + table + ' (' + fields.join(',') + ') VALUES (' + values + ')';
     const params = Object.values(fieldValues);
-    return await this.query(sql, params, true);
+    return await this.execute(sql, params);
   }
 
   public async updateObject(table: string, updateFieldValues: DbFieldValue, whereFieldValues: DbFieldValue) {
@@ -241,7 +249,7 @@ export class Db {
           .join(' AND ');
       params.push(...Object.values(whereFieldValues));
     }
-    return await this.query(sql, params);
+    return await this.execute(sql, params);
   }
 
   public async deleteObject(table: string, whereFieldValues: DbFieldValue) {
@@ -255,7 +263,7 @@ export class Db {
         .join(' AND ');
     const params = Object.values(whereFieldValues);
 
-    return await this.query(sql, params);
+    return await this.execute(sql, params);
   }
 
   // public async hasTable(table: string): Promise<boolean> {
@@ -274,6 +282,6 @@ export class Db {
   // }
 
   public async testConnection() {
-    return await this.query('select 1+1 as result');
+    return await this.select('select 1+1 as result');
   }
 }

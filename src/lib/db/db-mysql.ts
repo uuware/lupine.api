@@ -1,4 +1,4 @@
-import sqlite3, { Database } from 'sqlite3';
+// import sqlite3, { Database } from 'sqlite3';
 import { Logger } from '../logger';
 import { Db } from './db';
 import { DbConfig } from '../../models/db-config';
@@ -79,12 +79,12 @@ connection.end();
 */
 const logger = new Logger('db-mysql');
 export class DbMysql extends Db {
-  db!: Database;
+  // db!: Database;
 
   constructor(option: DbConfig) {
     super(option);
 
-    this.db = new sqlite3.Database(option.filename!, sqlite3.OPEN_READWRITE);
+    // this.db = new sqlite3.Database(option.filename!, sqlite3.OPEN_READWRITE);
 
     if (logger.isDebug()) {
       this.testConnection();
@@ -92,7 +92,7 @@ export class DbMysql extends Db {
   }
 
   close() {
-    this.db.close();
+    // this.db.close();
   }
 
   connect() {
@@ -101,17 +101,17 @@ export class DbMysql extends Db {
 
   public nativeQuery(sql: string, params?: any) {
     return new Promise((resolve, reject) => {
-      this.db.all(sql, params, (err: any, rows: unknown) => {
-        if (err) {
-          console.error(err);
-          reject(err);
-        } else {
-          if (logger.isDebug()) {
-            console.log('query result:' + sql, rows);
-          }
-          resolve(rows);
-        }
-      });
+      // this.db.all(sql, params, (err: any, rows: unknown) => {
+      //   if (err) {
+      //     console.error(err);
+      //     reject(err);
+      //   } else {
+      //     if (logger.isDebug()) {
+      //       console.log('query result:' + sql, rows);
+      //     }
+      //     resolve(rows);
+      //   }
+      // });
     });
   }
 
@@ -122,13 +122,13 @@ export class DbMysql extends Db {
   // }
 
   public async getTableCount(tableName: string) {
-    const result = await this.query(`SELECT COUNT(*) as c FROM ${tableName}`);
+    const result = await this.select(`SELECT COUNT(*) as c FROM ${tableName}`);
     return result[0].c;
   }
 
   public async getAllTables(addCount = false) {
     const query = `SELECT * FROM sqlite_master WHERE type ='table';`;
-    const result = await this.query(query);
+    const result = await this.select(query);
     if (result) {
       if (addCount) {
         for (let i in result) {
