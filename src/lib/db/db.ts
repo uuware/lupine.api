@@ -53,11 +53,11 @@ export class Db {
 
   public async select(sql: string, params?: any) {
     const fixedSql = this.replacePrefix(sql);
-    return await this.nativeQuery(fixedSql, params, false);
+    return await this.nativeQuery(fixedSql, params, true);
   }
   public async execute(sql: string, params?: any) {
     const fixedSql = this.replacePrefix(sql);
-    return await this.nativeQuery(fixedSql, params, true);
+    return await this.nativeQuery(fixedSql, params, false);
   }
   // public async query(sql: string, params?: any, addReturning?: boolean) {
   //   try {
