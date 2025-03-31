@@ -36,7 +36,10 @@ export class DbSqlite extends Db {
         if (isSelect) {
           rows = params ? this.db.prepare(sql).all(params) : this.db.prepare(sql).all();
         } else {
-          sql = sql + ' returning *';
+          const preSql = sql.trim().substring(0, 6).toLowerCase();
+          if (preSql.startsWith('insert') || preSql.startsWith('update') || preSql.startsWith('delete')) {
+            sql = sql + ' returning *';
+          }
           rows = params ? this.db.prepare(sql).run(params) : this.db.prepare(sql).run();
           if (rows && typeof rows.length === 'undefined') {
             // sqlite3 returns id as a record
