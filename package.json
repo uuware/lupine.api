@@ -1,6 +1,6 @@
 {
   "name": "lupine.api",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "license": "MIT",
   "author": "uuware.com",
   "homepage": "https://uuware.com/",
@@ -37,13 +37,15 @@
   ],
   "scripts": {
     "note": "echo 'build is not needed as the typescript code is supposed to be referred directly from other projects'",
+    "publish": "npm publish --access public",
     "build": "tsc"
   },
   "dependencies": {
-    "lupine.js": "^1.0.0",
-    "better-sqlite3": "^11.9.1"
+    "better-sqlite3": "^11.9.1",
+    "lupine.js": "^1.0.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.5"
   }
 }

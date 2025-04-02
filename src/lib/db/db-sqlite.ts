@@ -1,19 +1,20 @@
-import Database from 'better-sqlite3';
-import { Logger } from '../logger';
-import { Db } from './db';
-import { DbConfig } from '../../models/db-config';
+import Database from "better-sqlite3";
+import { Logger } from "../logger";
+import { Db } from "./db";
+import { DbConfig } from "../../models/db-config";
 
-const logger = new Logger('db-sqlite');
+const logger = new Logger("db-sqlite");
 export class DbSqlite extends Db {
-  db!: Database;
+  db!: Database.Database;
 
   constructor(option: DbConfig) {
     super(option);
 
     this.db = new Database(option.filename!, {
-      nativeBinding: 'node_modules/better-sqlite3/build/Release/better_sqlite3.node',
+      nativeBinding:
+        "node_modules/better-sqlite3/build/Release/better_sqlite3.node",
     });
-    this.db.pragma('journal_mode = WAL');
+    this.db.pragma("journal_mode = WAL");
 
     if (logger.isDebug()) {
       this.testConnection();
@@ -29,30 +30,54 @@ export class DbSqlite extends Db {
   }
 
   // INSERT...RETURNING is also supported in MariaDB from 10.5.0
-  public nativeQuery(sql: string, params?: any, isSelect?: boolean): Promise<any> {
+  public nativeQuery(
+    sql: string,
+    params?: any,
+    isSelect?: boolean
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
         let rows: any;
         if (isSelect) {
-          rows = params ? this.db.prepare(sql).all(params) : this.db.prepare(sql).all();
+          rows = params
+            ? this.db.prepare(sql).all(params)
+            : this.db.prepare(sql).all();
         } else {
           const preSql = sql.trim().substring(0, 6).toLowerCase();
-          if (preSql.startsWith('insert') || preSql.startsWith('update') || preSql.startsWith('delete')) {
-            sql = sql + ' returning *';
+          if (
+            preSql.startsWith("insert") ||
+            preSql.startsWith("update") ||
+            preSql.startsWith("delete")
+          ) {
+            sql = sql + " returning *";
           }
-          rows = params ? this.db.prepare(sql).run(params) : this.db.prepare(sql).run();
-          if (rows && typeof rows.length === 'undefined') {
+          rows = params
+            ? this.db.prepare(sql).run(params)
+            : this.db.prepare(sql).run();
+          if (rows && typeof rows.length === "undefined") {
             // sqlite3 returns id as a record
-            rows = [{ ...rows, id: rows.changes > 0 ? rows.lastInsertRowid : undefined }];
+            rows = [
+              {
+                ...rows,
+                id: rows.changes > 0 ? rows.lastInsertRowid : undefined,
+              },
+            ];
           }
         }
 
         if (logger.isDebug()) {
-          console.log('query:', sql, ', params:', params, ', result:', rows && rows.length);
+          console.log(
+            "query:",
+            sql,
+            ", params:",
+            params,
+            ", result:",
+            rows && rows.length
+          );
         }
         resolve(rows);
       } catch (err) {
-        console.error('query:', sql, ', params:', params, ', error:', err);
+        console.error("query:", sql, ", params:", params, ", error:", err);
         reject(err);
       }
     });
