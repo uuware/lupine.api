@@ -300,7 +300,10 @@ export class AdminRelease implements IApiBase {
       const chunk = fileContent.slice(i, i + chunkSize);
       if (!chunk) break;
 
-      const postData = { method: 'POST', body: JSON.stringify({ ...data, chkOption, index: cnt }) + '\n\n' + chunk };
+      const postData = {
+        method: 'POST',
+        body: JSON.stringify({ ...data, chkOption, index: cnt }) + '\n\n' + chunk,
+      };
       const remoteData = await fetch(targetUrl + '/api/admin/release/updateByClient', postData);
       const resultText = await remoteData.text();
       let remoteResult: any;

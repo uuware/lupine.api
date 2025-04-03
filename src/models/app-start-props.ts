@@ -1,3 +1,4 @@
+import { RenderPageFunctionsType } from '../api';
 import { AppLoaderProps } from './app-loader-props';
 import { LogConfig } from './logger-props';
 
@@ -14,4 +15,5 @@ export type AppStartProps = {
   logConfig: LogConfig;
   apiConfig: AppLoaderProps;
   serverConfig: InitStartProps;
+  renderPageFunctions: RenderPageFunctionsType;
 };

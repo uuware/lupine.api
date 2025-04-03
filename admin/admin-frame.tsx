@@ -46,9 +46,21 @@ export const AdminFrame = (props: AdminFrameProps) => {
       text: 'Contents',
       url: '',
       items: [
-        { text: 'Menu List', url: '', js: () => addPanel('Menu', AdminMenuPage()) },
-        { text: 'Page List', url: '', js: () => addPanel('Page', AdminPagePage()) },
-        { text: 'Process List', url: '', js: () => addPanel('Process', <div>new Process</div>) },
+        {
+          text: 'Menu List',
+          url: '',
+          js: () => addPanel('Menu', AdminMenuPage()),
+        },
+        {
+          text: 'Page List',
+          url: '',
+          js: () => addPanel('Page', AdminPagePage()),
+        },
+        {
+          text: 'Process List',
+          url: '',
+          js: () => addPanel('Process', <div>new Process</div>),
+        },
       ],
     },
     // { text: 'menu2', url: '/st_did.l--liangbufan.gunanguanvqingguandeng.html' },
@@ -61,22 +73,54 @@ export const AdminFrame = (props: AdminFrameProps) => {
       text: 'DB',
       url: '',
       items: [
-        { text: 'Table List', url: '', js: () => addPanel('Table List', TableListPage()) },
-        { text: 'Create Tables', url: '', js: () => addPanel('Create Tables', CreateTablesPage()) },
-        { text: 'Run SQL', url: '', js: () => addPanel('Run SQL', RunSqlPage()) },
+        {
+          text: 'Table List',
+          url: '',
+          js: () => addPanel('Table List', TableListPage()),
+        },
+        {
+          text: 'Create Tables',
+          url: '',
+          js: () => addPanel('Create Tables', CreateTablesPage()),
+        },
+        {
+          text: 'Run SQL',
+          url: '',
+          js: () => addPanel('Run SQL', RunSqlPage()),
+        },
       ],
     },
     {
       text: 'Test',
       url: '',
       items: [
-        { text: 'Test Themes', url: '', js: () => addPanel('Test Themes', TestThemesPage()) },
-        { text: 'Test', url: '', js: () => addPanel('Test', <div>new Test</div>) },
+        {
+          text: 'Test Themes',
+          url: '',
+          js: () => addPanel('Test Themes', TestThemesPage()),
+        },
+        {
+          text: 'Test',
+          url: '',
+          js: () => addPanel('Test', <div>new Test</div>),
+        },
       ],
     },
-    { text: 'Release', url: '', js: () => addPanel('Release', AdminReleasePage()) },
-    { text: 'Performance', url: '', js: () => addPanel('Performance', AdminPerformancePage()) },
-    { text: 'About', url: '', js: () => addPanel('About', <div>new About</div>) },
+    {
+      text: 'Release',
+      url: '',
+      js: () => addPanel('Release', AdminReleasePage()),
+    },
+    {
+      text: 'Performance',
+      url: '',
+      js: () => addPanel('Performance', AdminPerformancePage()),
+    },
+    {
+      text: 'About',
+      url: '',
+      js: () => addPanel('About', <div>new About</div>),
+    },
   ];
 
   const maxWidthMobileMenu = '800px';

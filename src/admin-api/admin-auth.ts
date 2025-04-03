@@ -19,7 +19,9 @@ export const devAdminAuth = async (req: ServerRequest, res: ServerResponse) => {
   if (!cryptoKey) {
     const response = {
       status: 'error',
-      message: langHelper.getLang('shared:crypto_key_not_set', { cryptoKey: DEV_ADMIN_CRYPTO_KEY_NAME }),
+      message: langHelper.getLang('shared:crypto_key_not_set', {
+        cryptoKey: DEV_ADMIN_CRYPTO_KEY_NAME,
+      }),
     };
     ApiHelper.sendJson(req, res, response);
     return true;
@@ -27,7 +29,9 @@ export const devAdminAuth = async (req: ServerRequest, res: ServerResponse) => {
   if (!process.env['DEV_ADMIN_PASS']) {
     const response = {
       status: 'error',
-      message: langHelper.getLang('shared:name_not_set', { name: 'DEV_ADMIN_PASS' }),
+      message: langHelper.getLang('shared:name_not_set', {
+        name: 'DEV_ADMIN_PASS',
+      }),
     };
     ApiHelper.sendJson(req, res, response);
     return true;

@@ -85,7 +85,10 @@ export class FsUtils {
 
   static getListDirent = async (dirPath: string) => {
     try {
-      const files = await fs.readdir(dirPath, { recursive: false, withFileTypes: true });
+      const files = await fs.readdir(dirPath, {
+        recursive: false,
+        withFileTypes: true,
+      });
       return files;
     } catch {
       return [];

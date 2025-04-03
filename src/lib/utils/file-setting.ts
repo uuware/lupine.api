@@ -3,7 +3,9 @@ import { FsUtils } from './fs-utils';
 
 const logger = new Logger('setting-file');
 
-export type FileSettingProps = { [key: string]: string | number | boolean | object };
+export type FileSettingProps = {
+  [key: string]: string | number | boolean | object;
+};
 
 /**
  * A simple settings/config class for storing key/value pairs with persistence.

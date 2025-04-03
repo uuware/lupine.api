@@ -209,7 +209,7 @@ export class AdminDb implements IApiBase {
       result: '',
     };
     if (data && !Array.isArray(data) && data.sql) {
-      const sql = (data.sql as string || '').trim();
+      const sql = ((data.sql as string) || '').trim();
       const result = sql.toUpperCase().startsWith('SELECT') ? await db.select(sql) : await db.execute(sql);
       response.status = 'ok';
       response.message = 'Executed sql.';

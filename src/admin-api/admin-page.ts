@@ -55,7 +55,9 @@ export class AdminPage implements IApiBase {
     const id = data['id'];
     if (!data['idReadonly']) {
       // save as
-      const result = await db.selectObject('$__s_page', ['menuid'], { menuid: id });
+      const result = await db.selectObject('$__s_page', ['menuid'], {
+        menuid: id,
+      });
       if (result && result.length > 0) {
         const response = {
           status: 'ID_EXISTS',
@@ -95,7 +97,9 @@ export class AdminPage implements IApiBase {
       result: {},
     };
     if (id) {
-      const result = await db.selectObject('$__s_page', undefined, { menuid: id });
+      const result = await db.selectObject('$__s_page', undefined, {
+        menuid: id,
+      });
       if (result && result.length > 0) {
         response.result = {
           menuid: result[0]['menuid'],

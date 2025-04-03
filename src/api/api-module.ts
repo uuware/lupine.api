@@ -1,7 +1,15 @@
 import { AppCache, DbConfig, DbHelper, LogWriter } from 'lupine.api';
 import { ServerResponse } from 'http';
 import path from 'path';
-import { IApiBase, apiCache, AppConfig, asyncLocalStorage, HostToPathProps, ServerRequest } from '.';
+import {
+  IApiBase,
+  apiCache,
+  AppConfig,
+  asyncLocalStorage,
+  HostToPathProps,
+  ServerRequest,
+  bindRenderPageFunctions,
+} from '.';
 import { IApiModule } from '../models/api-module-props';
 import { AsyncStorageProps } from '../models/async-storage-props';
 
@@ -24,8 +32,13 @@ export class ApiModule implements IApiModule {
 
   // appCache is from app-loader (parent scope), not the same in current scope
   public async initApi(appConfig: HostToPathProps, appCacheFromApp: AppCache) {
-    // 把app的appCache设置到api的appCache
+    // set app's appCache to api's appCache
     AppCache.replaceInstance(appCacheFromApp);
+    // set RENDER_PAGE_FUNCTIONS to API module
+    bindRenderPageFunctions(
+      appCacheFromApp.get(appCacheFromApp.APP_GLOBAL, appCacheFromApp.KEYS.RENDER_PAGE_FUNCTIONS)
+    );
+
     console.log(`appConfig: `, appConfig);
     apiCache.set(apiCache.KEYS.APP_DATA, appConfig);
     // apiCache.set(apiCache.KEYS.APP_CACHE, appCache);

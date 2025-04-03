@@ -92,7 +92,12 @@ export class ApiRouter implements IApiRouter {
     } catch (e: any) {
       logger.error(`Processed path: ${path}, error: ${e.message}`);
       res.writeHead(500, { 'Content-Type': 'text/html' });
-      res.write(JSON.stringify({ status: 'error', message: `Processed path: ${path}, error: ${e.message}` }));
+      res.write(
+        JSON.stringify({
+          status: 'error',
+          message: `Processed path: ${path}, error: ${e.message}`,
+        })
+      );
       res.end();
       return true;
     }

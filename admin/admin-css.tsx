@@ -1,4 +1,3 @@
 import { CssProps } from 'lupine.js';
 
-export const adminCss: CssProps = {
-};
+export const adminCss: CssProps = {};

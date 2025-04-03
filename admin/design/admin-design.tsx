@@ -6,7 +6,10 @@ import { BlockTitle } from './block-title';
 import { BlockParagraph } from './block-paragraph';
 
 const fetchLogin = async (props: PageProps, username: string, password: string) => {
-  const data = await props.renderPageFunctions.fetchData('/api/admin/auth', { u: username, p: password });
+  const data = await props.renderPageFunctions.fetchData('/api/admin/auth', {
+    u: username,
+    p: password,
+  });
   return data.json;
 };
 

@@ -79,7 +79,11 @@ const loadData = async (
   );
 };
 
-export type TableDataUpdateProps = { refreshRef?: Function; onDelete?: Function; onEdit?: Function };
+export type TableDataUpdateProps = {
+  refreshRef?: Function;
+  onDelete?: Function;
+  onEdit?: Function;
+};
 export const AdminTableData = (props: { tableName: string; update?: TableDataUpdateProps }) => {
   const css: CssProps = {
     '.table-box': {

@@ -23,6 +23,7 @@ class AppStart {
     appCache.set(appCache.APP_GLOBAL, appCache.KEYS.APP_DEBUG, props.debug);
     appCache.set(appCache.APP_GLOBAL, appCache.KEYS.START_TIME, new Date());
     appCache.set(appCache.APP_GLOBAL, appCache.KEYS.APP_VERSION, process.env['APP_VERSION']);
+    appCache.set(appCache.APP_GLOBAL, appCache.KEYS.RENDER_PAGE_FUNCTIONS, props.renderPageFunctions);
     this.webServer = webServer || new WebServer();
 
     this.debug = props.debug;

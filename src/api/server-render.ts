@@ -21,6 +21,7 @@ let renderPageFunctions: RenderPageFunctionsType = {
     throw new Error('Method not implemented');
   },
 };
+export const getRenderPageFunctions = () => renderPageFunctions;
 // for the FE code to fetch data in SSR
 export const bindRenderPageFunctions = (calls: RenderPageFunctionsType) => {
   for (let k in calls) {

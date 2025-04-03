@@ -92,7 +92,12 @@ export const getPerformanceData = async (req: ServerRequest, res: ServerResponse
         speed: c.speed,
         times: c.times,
       })),
-      process: { ...(process as any), mainModule: undefined, moduleLoadList: undefined, config: undefined },
+      process: {
+        ...(process as any),
+        mainModule: undefined,
+        moduleLoadList: undefined,
+        config: undefined,
+      },
     },
   };
   ApiHelper.sendJson(req, res, response);

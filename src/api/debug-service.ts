@@ -13,7 +13,10 @@ export class DebugService {
       if (json.message === 'get-flag') {
         this.miniWebSocket.sendMessage(
           socket,
-          JSON.stringify({ message: 'flag', flag: DebugService.clientRefreshFlag })
+          JSON.stringify({
+            message: 'flag',
+            flag: DebugService.clientRefreshFlag,
+          })
         );
       }
     } catch (error) {
