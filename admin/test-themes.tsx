@@ -5,6 +5,8 @@ import {
   PopupMenuWithButton,
   PopupMenuWithLabel,
   showModal,
+  ToggleSwitch,
+  ToggleSwitchSize,
 } from 'lupine.js';
 
 const TestTextFontSize = () => {
@@ -205,6 +207,14 @@ export const TestThemesPage = () => {
           <label for='itemtype_dc' class='disabled'>
             Disabled checked
           </label>
+        </div>
+        <div class='row-box mt-s'>
+          <ToggleSwitch checked={true} size={ToggleSwitchSize.Small} />
+          <ToggleSwitch checked={false} size={ToggleSwitchSize.Small} />
+          <ToggleSwitch checked={true} size={ToggleSwitchSize.Medium} />
+          <ToggleSwitch checked={false} size={ToggleSwitchSize.Medium} />
+          <ToggleSwitch checked={true} size={ToggleSwitchSize.Large} />
+          <ToggleSwitch checked={false} size={ToggleSwitchSize.Large} />
         </div>
         <div class='row-box mb-s'>
           <div class='row-box flex1'>

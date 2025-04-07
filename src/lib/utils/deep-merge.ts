@@ -30,3 +30,8 @@ export const deepMerge = (target: any, ...sources: any[]): any => {
 
   return deepMerge(target, ...sources);
 };
+
+// Clone data object only
+export const cloneJson = (json: any) => {
+  return JSON.parse(JSON.stringify(json));
+};
