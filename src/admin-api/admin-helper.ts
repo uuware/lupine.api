@@ -1,14 +1,13 @@
 import { ServerResponse } from 'http';
-import { ApiHelper, ServerRequest } from '../api';
+import { ApiHelper } from '../api';
 import { CryptoUtils, Logger } from '../lib';
+import { ServerRequest } from '../models';
 
 /*
 dev-admin uses different authentication method from frontend.
 dev-admin only provides fixed username and password authentication, no user maintenance.
 saved cookie name: _token_dev
 */
-const PW_RETRY_MAX = 5;
-const PW_RETRY_RESET_MINUTES = 15;
 
 // DEFAULT_ADMIN_PASS is DEFAULT_ADMIN_NAME + ':' + login password hash.
 // Use below command to generate hash:

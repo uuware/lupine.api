@@ -9,14 +9,14 @@ import {
   langHelper,
   FsUtils,
   processRefreshCache,
+  adminHelper,
 } from 'lupine.api';
 import path from 'path';
 import { needDevAdminSession } from './admin-auth';
 import { pipeline } from 'node:stream/promises';
-import zlib from 'node:zlib';
 
-const logger = new Logger('release-api');
 export class AdminRelease implements IApiBase {
+  private logger = new Logger('release-api');
   protected router = new ApiRouter();
   adminRelease: any;
 
@@ -33,15 +33,25 @@ export class AdminRelease implements IApiBase {
     this.router.use('/check', needDevAdminSession, this.check.bind(this));
     this.router.use('/check-log', needDevAdminSession, this.checkLog.bind(this));
     this.router.use('/update', needDevAdminSession, this.update.bind(this));
-    this.router.use('/refresh-cache', needDevAdminSession, this.refreshCache.bind(this));
+    // called online or by clients
+    this.router.use('/refresh-cache', this.refreshCache.bind(this));
 
     // ...ByClient will verify credentials from post, so it doesn't need AdminSession
-    this.router.use('/checkByClient', this.checkByClient.bind(this));
-    this.router.use('/logByClient', this.logByClient.bind(this));
-    this.router.use('/updateByClient', this.updateByClient.bind(this));
+    this.router.use('/byClientCheck', this.byClientCheck.bind(this));
+    this.router.use('/byClientLog', this.byClientLog.bind(this));
+    this.router.use('/byClientUpdate', this.byClientUpdate.bind(this));
   }
 
   async refreshCache(req: ServerRequest, res: ServerResponse) {
+    // check whether it's from online admin
+    const devAdminSession = await adminHelper.getDevAdminFromCookie(req, res, false);
+    if (!devAdminSession) {
+      // whether it has credentials
+      const jsonData = req.locals.json();
+      const data = this.chkData(jsonData, req, res, true);
+      if (!data) return true;
+    }
+
     processRefreshCache(req);
     const response = {
       status: 'ok',
@@ -60,6 +70,7 @@ export class AdminRelease implements IApiBase {
       !data.adminPass ||
       !data.targetUrl
     ) {
+      this.logger.info(`chkData, missing parameters, targetUrl: ${data.targetUrl}`);
       const response = {
         status: 'error',
         message: 'Wrong data [missing parameters].', //langHelper.getLang('shared:wrong_data'),
@@ -69,6 +80,7 @@ export class AdminRelease implements IApiBase {
     }
     if (chkCredential) {
       if (data.adminUser !== process.env['DEV_ADMIN_USER'] || data.adminPass !== process.env['DEV_ADMIN_PASS']) {
+        this.logger.info(`chkData, wrong credentials, targetUrl: ${data.targetUrl}`);
         const response = {
           status: 'error',
           message: 'Wrong data [wrong credentials].', //langHelper.getLang('shared:wrong_data'),
@@ -80,7 +92,7 @@ export class AdminRelease implements IApiBase {
     return data;
   }
 
-  // this is called by the FE, then call checkByClient to get remote server's information
+  // this is called by the FE, then call byClientCheck to get remote server's information
   async check(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
     const data = this.chkData(jsonData, req, res, false);
@@ -95,7 +107,7 @@ export class AdminRelease implements IApiBase {
     if (targetUrl.endsWith('/')) {
       targetUrl = targetUrl.slice(0, -1);
     }
-    const remoteData = await fetch(targetUrl + '/api/admin/release/checkByClient', {
+    const remoteData = await fetch(targetUrl + '/api/admin/release/byClientCheck', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -116,7 +128,7 @@ export class AdminRelease implements IApiBase {
     return true;
   }
 
-  // this is called by the FE, then call logByClient to get remote server's information
+  // this is called by the FE, then call byClientLog to get remote server's information
   async checkLog(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
     const data = this.chkData(jsonData, req, res, false);
@@ -126,7 +138,7 @@ export class AdminRelease implements IApiBase {
     if (targetUrl.endsWith('/')) {
       targetUrl = targetUrl.slice(0, -1);
     }
-    const remoteData = await fetch(targetUrl + '/api/admin/release/logByClient', {
+    const remoteData = await fetch(targetUrl + '/api/admin/release/byClientLog', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -136,7 +148,7 @@ export class AdminRelease implements IApiBase {
   }
 
   // called by clients
-  async checkByClient(req: ServerRequest, res: ServerResponse) {
+  async byClientCheck(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
     const data = this.chkData(jsonData, req, res, true);
     if (!data) return true;
@@ -181,7 +193,7 @@ export class AdminRelease implements IApiBase {
   }
 
   // called by clients
-  async logByClient(req: ServerRequest, res: ServerResponse) {
+  async byClientLog(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
     const data = this.chkData(jsonData, req, res, true);
     if (!data) return true;
@@ -259,6 +271,13 @@ export class AdminRelease implements IApiBase {
         return true;
       }
     }
+    if (data.chkApi || data.chkServer) {
+      // send request to clear cache
+      await fetch(targetUrl + '/api/admin/release/refresh-cache', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    }
     const response = {
       status: 'ok',
       message: 'updated',
@@ -302,9 +321,10 @@ export class AdminRelease implements IApiBase {
 
       const postData = {
         method: 'POST',
-        body: JSON.stringify({ ...data, chkOption, index: cnt }) + '\n\n' + chunk,
+        body: JSON.stringify({ ...data, chkOption, index: cnt, size: fileContent.length }) + '\n\n' + chunk,
       };
-      const remoteData = await fetch(targetUrl + '/api/admin/release/updateByClient', postData);
+      this.logger.debug(`updateSendFile, index: ${cnt}, sending (max): ${i + chunkSize} / ${fileContent.length}`);
+      const remoteData = await fetch(targetUrl + '/api/admin/release/byClientUpdate', postData);
       const resultText = await remoteData.text();
       let remoteResult: any;
       try {
@@ -323,7 +343,7 @@ export class AdminRelease implements IApiBase {
   }
 
   // called by clients
-  async updateByClient(req: ServerRequest, res: ServerResponse) {
+  async byClientUpdate(req: ServerRequest, res: ServerResponse) {
     const body = req.locals.body as Buffer;
     let jsonData = {};
     let fileContent = null;
@@ -381,10 +401,10 @@ export class AdminRelease implements IApiBase {
       };
       ApiHelper.sendJson(req, res, response);
     } catch (e: any) {
-      console.log('updateByClient failed', e);
+      console.log('byClientUpdate failed', e);
       const response = {
         status: 'error',
-        message: 'updateByClient failed',
+        message: 'byClientUpdate failed',
       };
       ApiHelper.sendJson(req, res, response);
     }

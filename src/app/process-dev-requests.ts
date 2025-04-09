@@ -3,9 +3,10 @@ import { ServerResponse } from 'http';
 import { AddressInfo } from 'net';
 import { appLoader } from './app-loader';
 import { appCache } from './app-cache';
-import { apiCache, ServerRequest } from '../api';
+import { apiCache } from '../api';
 import { DebugService } from '../api/debug-service';
-const logger = new Logger('index');
+import { ServerRequest } from '../models';
+const logger = new Logger('process-dev-requests');
 
 function deleteRequireCache(moduleName: string) {
   var solvedName = require.resolve(moduleName),
@@ -20,6 +21,7 @@ function deleteRequireCache(moduleName: string) {
 }
 
 export const processDebugMessage = async (msgObject: any) => {
+  logger.info(`processDebugMessage, id: ${msgObject && msgObject.id}, message: ${msgObject && msgObject.message}`);
   if (msgObject.id === 'debug' && msgObject.message === 'refresh') {
     if (msgObject.appName) {
       const appConfig = appCache.get(msgObject.appName, appCache.KEYS.API_CONFIG);

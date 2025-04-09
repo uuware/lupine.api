@@ -1,7 +1,7 @@
 import os, { userInfo } from 'os';
 import { ServerResponse } from 'http';
 import {
-  Logger,
+  // Logger,
   ServerRequest,
   ApiHelper,
   JsonObject,
@@ -9,12 +9,13 @@ import {
   appCache,
   DateUtils,
   getRequestCount,
+  getApiVersion,
 } from 'lupine.api';
 import { adminHelper } from './admin-helper';
 import cluster from 'cluster';
 
 // #https://github.com/sebhildebrandt/systeminformation
-const logger = new Logger('performance-api');
+// const logger = new Logger('performance-api');
 export const getPerformanceData = async (req: ServerRequest, res: ServerResponse) => {
   const json = adminHelper.getDevAdminFromCookie(req, res, true);
   if (!json) {
@@ -25,7 +26,7 @@ export const getPerformanceData = async (req: ServerRequest, res: ServerResponse
     results: {
       appInfo: {
         debug: appCache.get(appCache.APP_GLOBAL, appCache.KEYS.APP_DEBUG),
-        appVersion: appCache.get(appCache.APP_GLOBAL, appCache.KEYS.APP_VERSION),
+        apiVersion: getApiVersion(),
         appStartTime: appCache.get(appCache.APP_GLOBAL, appCache.KEYS.START_TIME),
         runningTime: DateUtils.diffString(new Date(), appCache.get(appCache.APP_GLOBAL, appCache.KEYS.START_TIME)),
         // request info

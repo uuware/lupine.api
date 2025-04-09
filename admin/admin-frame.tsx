@@ -11,6 +11,7 @@ import {
   TabsUpdateProps,
   TabsPageProps,
   VNode,
+  getWebVersion,
 } from 'lupine.js';
 import { adminCss } from './admin-css';
 import { CreateTablesPage, RunSqlPage } from './admin-db';
@@ -229,7 +230,7 @@ export const AdminFrame = (props: AdminFrameProps) => {
           backgroundColor='var(--sidebar-bg-color)'
           mobileMenu={true}
         ></MenuSidebar>
-        <div class='top-logo'>Lupine.Dev - ver 1.0</div>
+        <div class='top-logo'>Lupine.Dev - {getWebVersion()}</div>
         <div class='top-title'>{props.title}</div>
         <div class='top-menu'>
           <ThemeSelector></ThemeSelector>

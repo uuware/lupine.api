@@ -12,7 +12,6 @@ enum AppCacheKeys {
   RENDER_PAGE_FUNCTIONS = 'RENDER_PAGE_FUNCTIONS',
 
   START_TIME = 'START_TIME',
-  APP_VERSION = 'APP_VERSION',
 }
 
 // Note: since api and app are independent, when accessing from api, AppCache data will be empty!
