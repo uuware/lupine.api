@@ -1,5 +1,5 @@
 import cluster from 'cluster';
-import { Logger, LogWriter } from '../lib';
+import { Logger } from '../lib';
 import { WebProcessor } from './web-processor';
 import { appLoader } from './app-loader';
 import { processMessageFromPrimary, processMessageFromWorker } from './app-message';
@@ -7,7 +7,7 @@ import { WebServer } from './web-server';
 import { processDevRequests } from './process-dev-requests';
 import { appCache } from './app-cache';
 import { HostToPath } from '../api';
-import { AppStartProps, InitStartProps, LogConfig } from '../models';
+import { AppStartProps, InitStartProps } from '../models';
 
 class AppStart {
   debug: boolean = false;
@@ -27,7 +27,6 @@ class AppStart {
 
     this.debug = props.debug;
     this.bindProcess();
-    this.initLog(props.logConfig);
 
     // call the Logger after initLog
     this.logger.debug(
@@ -83,10 +82,6 @@ class AppStart {
       console.error(`${process.pid} - Process on uncaughtException: `, err);
       console.error(err.stack);
     });
-  }
-
-  initLog(config: LogConfig) {
-    LogWriter.init(config);
   }
 
   async initServer(config: InitStartProps) {

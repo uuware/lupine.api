@@ -1,9 +1,10 @@
 import { ServerResponse } from 'http';
 import { Logger } from '../lib/logger';
-import { handler404, ServerRequest } from '../api';
+import { handler404 } from '../api';
 import { appCache } from './app-cache';
 import { AsyncStorageProps } from '../models/async-storage-props';
 import { ApiRouterCallback } from '../models/api-router-props';
+import { ServerRequest } from '../models';
 const logger = new Logger('web-router');
 
 export class WebProcessor {

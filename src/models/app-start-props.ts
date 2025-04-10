@@ -1,6 +1,5 @@
 import { RenderPageFunctionsType } from '../api';
 import { AppLoaderProps } from './app-loader-props';
-import { LogConfig } from './logger-props';
 
 export type InitStartProps = {
   bindIp: string;
@@ -12,7 +11,6 @@ export type InitStartProps = {
 
 export type AppStartProps = {
   debug: boolean;
-  logConfig: LogConfig;
   apiConfig: AppLoaderProps;
   serverConfig: InitStartProps;
   renderPageFunctions: RenderPageFunctionsType;

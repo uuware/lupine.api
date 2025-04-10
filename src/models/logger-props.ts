@@ -16,15 +16,37 @@ export interface LogConfig {
   level: LogLevels;
 }
 
-export const DEFAULT_LOG_FILENAME = 'log-%index%.log';
-export const defaultLogConfig = {
-  folder: './log/',
-  filename: DEFAULT_LOG_FILENAME, // %index% will be replaced with 0, 1, ..., maxCount-1, default is 0
-  maxSize: 1024 * 1024 * 1,
-  maxCount: 5,
-  outToFile: true,
-  outToConsole: true,
-  level: LogLevels.debug,
+const getSizeFromString = (value: string | undefined, defaultValue: number) => {
+  if (typeof value === 'undefined' || value === '') return defaultValue;
+  // the value can be a number, or ?kb, or ?mb
+  const match = value!.match(/^(\d+)(kb|mb)?$/i);
+  if (match) {
+    const number = parseInt(match[1], 10);
+    if (match[2]?.toLowerCase() === 'kb') {
+      return number * 1024;
+    } else if (match[2]?.toLowerCase() === 'mb') {
+      return number * 1024 * 1024;
+    }
+    return number;
+  } else {
+    console.error(`Invalid log size: ${value}`);
+  }
+  return defaultValue;
+};
+
+const isStringTrue = (value: string | undefined, defaultValue: boolean) => {
+  if (typeof value === 'undefined' || value === '') return defaultValue;
+  value = (value || '').trim().toLocaleLowerCase();
+  return value === 'true' || value === '1';
+};
+export const defaultLogConfig: LogConfig = {
+  folder: process.env['LOG_FOLDER'] || './log/',
+  filename: process.env['LOG_FILENAME'] || 'log-%index%.log', // %index% will be replaced with 0, 1, ..., maxCount-1, default is 0
+  maxSize: getSizeFromString(process.env['LOG_MAX_SIZE'], 1024 * 1024 * 1),
+  maxCount: Number(process.env['LOG_MAX_COUNT'] || '5'),
+  outToFile: isStringTrue(process.env['LOG_OUT_TO_FILE'], true),
+  outToConsole: isStringTrue(process.env['LOG_OUT_TO_CONSOLE'], true),
+  level: (process.env['LOG_LEVEL'] || 'info').trim().toLocaleLowerCase() as LogLevels,
 };
 
 export interface MessageFromSubProcess {

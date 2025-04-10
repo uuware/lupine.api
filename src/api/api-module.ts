@@ -35,9 +35,6 @@ export class ApiModule implements IApiModule {
     apiCache.set(apiCache.KEYS.APP_DATA, appConfig);
     // apiCache.set(apiCache.KEYS.APP_CACHE, appCache);
 
-    appConfig.logConfig.folder = path.join(appConfig.dataPath, 'logs');
-    LogWriter.init(appConfig.logConfig);
-
     await this.initConfig(appConfig);
     apiCache.clearTemplateCache();
 

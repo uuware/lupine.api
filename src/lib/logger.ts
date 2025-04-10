@@ -1,13 +1,6 @@
 // here it must import from async-storage but not from api!
 import { asyncLocalStorage } from '../api/async-storage';
-import {
-  LogConfig,
-  LogLevels,
-  MessageFromSubProcess,
-  LoggerColors,
-  defaultLogConfig,
-  DEFAULT_LOG_FILENAME,
-} from '../models/logger-props';
+import { LogConfig, LogLevels, MessageFromSubProcess, LoggerColors, defaultLogConfig } from '../models/logger-props';
 
 const fs = require('fs');
 const util = require('util');
@@ -26,17 +19,15 @@ logger.info('log test. numer: %d, string: %s, json: %j', 11, 'p2', {key: 'value'
 */
 export class LogWriter {
   static instance = new LogWriter();
-  static init(config: LogConfig) {
-    LogWriter.instance._init(config);
-  }
+
+  private constructor() {}
 
   config: LogConfig = defaultLogConfig;
   savedSize = -1; // -1 for needing initialize
   fileHandle = 0;
-  level = 0;
+  level = Object.keys(LogLevels).findIndex((item) => item === this.config.level);
 
-  // called from admin-listener when config updated
-  _init(config: LogConfig) {
+  private _init(config: LogConfig) {
     console.debug(`init Log: ${config.level}`);
     if (!cluster.isMaster) {
       console.error('Logger cannot be initialised in sub process.');
@@ -60,7 +51,7 @@ export class LogWriter {
 
       const filename = path.join(
         this.config.folder,
-        (this.config.filename || DEFAULT_LOG_FILENAME).replace('%index%', '0')
+        (this.config.filename || defaultLogConfig.filename).replace('%index%', '0')
       );
       this.fileHandle = fs.openSync(filename, 'a+');
       if (this.fileHandle <= 0) {
@@ -81,7 +72,7 @@ export class LogWriter {
     this.savedSize = stats['size'];
     if (this.savedSize >= this.config.maxSize) {
       fs.closeSync(this.fileHandle);
-      const filename = this.config.filename || DEFAULT_LOG_FILENAME;
+      const filename = this.config.filename || defaultLogConfig.filename;
       if (filename.indexOf('%index%') >= 0) {
         const maxCount = this.config.maxCount || 5;
         for (let i = maxCount - 1; i >= 1; i--) {
@@ -173,9 +164,8 @@ export class LogWriter {
       return;
     }
     if (this.savedSize == -1) {
-      // initialize
-      console.error(`Can't log because the logger is not initialized!!!`, messageList);
-      return;
+      // all config must be in process.env
+      this._init(defaultLogConfig);
     }
 
     const s = util.format(...messageList);

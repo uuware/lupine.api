@@ -13,7 +13,7 @@ export interface DbConfig {
 }
 
 export const defaultDbConfig: DbConfig = {
-  type: 'sqlite',
+  type: process.env['DB_TYPE'] || 'sqlite',
   host: '',
   port: 0,
   user: '',
@@ -23,5 +23,5 @@ export const defaultDbConfig: DbConfig = {
   poolMax: 5,
   connectionTimeout: 10000,
   tablePrefix: '',
-  filename: 'sqlite3.db',
+  filename: process.env['DB_FILENAME'] || 'sqlite3.db',
 };

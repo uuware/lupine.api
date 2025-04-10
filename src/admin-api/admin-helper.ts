@@ -107,4 +107,5 @@ export class AdminHelper {
   }
 }
 
-export const adminHelper = AdminHelper.getInstance();
+// add comment for tree shaking
+export const adminHelper = /* @__PURE__ */ AdminHelper.getInstance();

@@ -3,9 +3,10 @@ import { Logger } from '../lib/logger';
 import crypto from 'crypto';
 import { parseCookies } from '../lib/utils';
 import { WebProcessor } from './web-processor';
-import { handler403, handler404, handler500, HostToPath, ServerRequest, SimpleStorage } from '../api';
+import { handler403, handler404, handler500, HostToPath, SimpleStorage } from '../api';
 import { JsonObject } from '../models/json-object';
 import { AsyncStorageProps } from '../models/async-storage-props';
+import { ServerRequest } from '../models';
 const logger = new Logger('listener');
 
 let MAX_REQUEST_SIZE = 1024 * 1024 * 5;
