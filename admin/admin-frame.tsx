@@ -24,6 +24,7 @@ import { AdminPerformancePage } from './admin-performance';
 import { AdminReleasePage } from './admin-release';
 import { AdminTestPage } from './admin-test';
 import { AdminTestEditPage } from './admin-test-edit';
+import { AdminResourcesPage } from './admin-resources';
 
 export type AdminFrameProps = {
   children: ComponentChildren;
@@ -119,9 +120,20 @@ export const AdminFrame = (props: AdminFrameProps) => {
       js: () => addPanel('Release', AdminReleasePage()),
     },
     {
-      text: 'Performance',
+      text: 'Server Info',
       url: '',
-      js: () => addPanel('Performance', AdminPerformancePage()),
+      items: [
+        {
+          text: 'Performance',
+          url: '',
+          js: () => addPanel('Performance', AdminPerformancePage()),
+        },
+        {
+          text: 'Resources',
+          url: '',
+          js: () => addPanel('Resources', AdminResourcesPage()),
+        },
+      ],
     },
     {
       text: 'About',

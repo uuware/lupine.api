@@ -142,7 +142,7 @@ const showBookEditItem = async (item: SampleDataProps, update: (item: SampleData
       updateFn.cancel?.();
       modalClose();
     }
-    if (index === 1) {
+    if (index === 0) {
       const newItem = updateFn.save?.();
       if (newItem) {
         update(newItem);
@@ -153,7 +153,7 @@ const showBookEditItem = async (item: SampleDataProps, update: (item: SampleData
   const updateFn: SampleDataUpdateProps = {};
   const modalClose = await ModalWindow.show({
     title: 'Edit Sample Data',
-    buttons: ['Cancel', 'Save'],
+    buttons: ['Save', 'Cancel'],
     // contentMaxHeight: '400px',
     handleClicked,
     children: <BookEditItem item={item} update={updateFn}></BookEditItem>,

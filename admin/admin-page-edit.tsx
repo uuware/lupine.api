@@ -100,7 +100,7 @@ export const AdminPageEditPage = (menuId: string) => {
   };
   const doSave = async (isSaveAs = false) => {
     const handleClicked = async (index: number) => {
-      if (index === 1) {
+      if (index === 0) {
         // Save
         const id = DomUtils.getValue('#s_menuId');
         const title = DomUtils.getValue('#s_menuTitle');
@@ -157,7 +157,7 @@ export const AdminPageEditPage = (menuId: string) => {
     };
     const modalClose = await ModalWindow.show({
       title: 'Save Menu',
-      buttons: ['Cancel', 'Save'],
+      buttons: ['Save', 'Cancel'],
       // contentMaxHeight: '400px',
       handleClicked,
       children: (

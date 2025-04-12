@@ -8,17 +8,13 @@ import {
   ApiHelper,
   langHelper,
   FsUtils,
-  processRefreshCache,
-  adminHelper,
 } from 'lupine.api';
 import path from 'path';
 import { needDevAdminSession } from './admin-auth';
-import { pipeline } from 'node:stream/promises';
 
 export class AdminRelease implements IApiBase {
   private logger = new Logger('release-api');
   protected router = new ApiRouter();
-  adminRelease: any;
 
   constructor() {
     this.mountDashboard();
@@ -31,37 +27,45 @@ export class AdminRelease implements IApiBase {
   protected mountDashboard() {
     // called by FE
     this.router.use('/check', needDevAdminSession, this.check.bind(this));
-    this.router.use('/check-log', needDevAdminSession, this.checkLog.bind(this));
     this.router.use('/update', needDevAdminSession, this.update.bind(this));
     // called online or by clients
     this.router.use('/refresh-cache', this.refreshCache.bind(this));
 
     // ...ByClient will verify credentials from post, so it doesn't need AdminSession
     this.router.use('/byClientCheck', this.byClientCheck.bind(this));
-    this.router.use('/byClientLog', this.byClientLog.bind(this));
     this.router.use('/byClientUpdate', this.byClientUpdate.bind(this));
   }
 
   async refreshCache(req: ServerRequest, res: ServerResponse) {
-    // check whether it's from online admin
-    const devAdminSession = await adminHelper.getDevAdminFromCookie(req, res, false);
-    if (!devAdminSession) {
-      // whether it has credentials
-      const jsonData = req.locals.json();
-      const data = this.chkData(jsonData, req, res, true);
-      if (!data) return true;
-    }
+    const jsonData = req.locals.json();
+    const data = AdminRelease.chkData(jsonData, req, res, false);
+    if (!data) return true;
 
-    processRefreshCache(req);
+    let targetUrl = data.targetUrl as string;
+    if (targetUrl.endsWith('/')) {
+      targetUrl = targetUrl.slice(0, -1);
+    }
+    const remoteData = await fetch(targetUrl + '/api/admin/performance/refresh-cache', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    const resultText = await remoteData.text();
+    let remoteResult: any;
+    try {
+      remoteResult = JSON.parse(resultText);
+    } catch (e: any) {
+      remoteResult = { status: 'error', message: resultText };
+    }
     const response = {
       status: 'ok',
-      message: 'Cache refresh request is sent.',
+      message: 'check.',
+      ...remoteResult,
     };
     ApiHelper.sendJson(req, res, response);
     return true;
   }
 
-  private chkData(data: any, req: ServerRequest, res: ServerResponse, chkCredential: boolean) {
+  public static chkData(data: any, req: ServerRequest, res: ServerResponse, chkCredential: boolean) {
     if (
       !data ||
       Array.isArray(data) ||
@@ -70,7 +74,6 @@ export class AdminRelease implements IApiBase {
       !data.adminPass ||
       !data.targetUrl
     ) {
-      this.logger.info(`chkData, missing parameters, targetUrl: ${data.targetUrl}`);
       const response = {
         status: 'error',
         message: 'Wrong data [missing parameters].', //langHelper.getLang('shared:wrong_data'),
@@ -80,7 +83,6 @@ export class AdminRelease implements IApiBase {
     }
     if (chkCredential) {
       if (data.adminUser !== process.env['DEV_ADMIN_USER'] || data.adminPass !== process.env['DEV_ADMIN_PASS']) {
-        this.logger.info(`chkData, wrong credentials, targetUrl: ${data.targetUrl}`);
         const response = {
           status: 'error',
           message: 'Wrong data [wrong credentials].', //langHelper.getLang('shared:wrong_data'),
@@ -95,7 +97,7 @@ export class AdminRelease implements IApiBase {
   // this is called by the FE, then call byClientCheck to get remote server's information
   async check(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
-    const data = this.chkData(jsonData, req, res, false);
+    const data = AdminRelease.chkData(jsonData, req, res, false);
     if (!data) return true;
 
     // From app list is from local
@@ -128,29 +130,10 @@ export class AdminRelease implements IApiBase {
     return true;
   }
 
-  // this is called by the FE, then call byClientLog to get remote server's information
-  async checkLog(req: ServerRequest, res: ServerResponse) {
-    const jsonData = req.locals.json();
-    const data = this.chkData(jsonData, req, res, false);
-    if (!data) return true;
-
-    let targetUrl = data.targetUrl as string;
-    if (targetUrl.endsWith('/')) {
-      targetUrl = targetUrl.slice(0, -1);
-    }
-    const remoteData = await fetch(targetUrl + '/api/admin/release/byClientLog', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-    res.writeHead(200, { 'Content-Type': 'application/octet-stream' });
-    await pipeline(remoteData.body as any, res);
-    return true;
-  }
-
   // called by clients
   async byClientCheck(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
-    const data = this.chkData(jsonData, req, res, true);
+    const data = AdminRelease.chkData(jsonData, req, res, true);
     if (!data) return true;
 
     const appData = apiCache.getAppData();
@@ -171,14 +154,15 @@ export class AdminRelease implements IApiBase {
           size: fileInfo?.size,
         });
       }
+      const fileInfo = await FsUtils.fileInfo(path.join(appData.apiPath, '..', folder));
       foldersWithTime.push({
         name: folder,
-        sub: subFoldersWithTime,
+        time: new Date(fileInfo!.mtime).toLocaleString(),
+        items: subFoldersWithTime,
       });
     }
 
-    const logFolders = await FsUtils.getListNames(path.join(appData.apiPath, '../../../log'));
-
+    // const logFolders = await FsUtils.getListNames(path.join(appData.apiPath, '../../log'));
     const response = {
       status: 'ok',
       message: 'Remote server information called from a client.',
@@ -186,29 +170,7 @@ export class AdminRelease implements IApiBase {
       apps,
       folders,
       foldersWithTime,
-      logs: logFolders,
-    };
-    ApiHelper.sendJson(req, res, response);
-    return true;
-  }
-
-  // called by clients
-  async byClientLog(req: ServerRequest, res: ServerResponse) {
-    const jsonData = req.locals.json();
-    const data = this.chkData(jsonData, req, res, true);
-    if (!data) return true;
-
-    if (typeof data.log === 'string') {
-      const appData = apiCache.getAppData();
-      const logPath = path.join(appData.apiPath, '../../../log', data.log);
-      if (await FsUtils.pathExist(logPath)) {
-        ApiHelper.sendFile(req, res, logPath);
-        return true;
-      }
-    }
-    const response = {
-      status: 'error',
-      message: 'Log not found',
+      // logs: logFolders,
     };
     ApiHelper.sendJson(req, res, response);
     return true;
@@ -216,7 +178,7 @@ export class AdminRelease implements IApiBase {
 
   async update(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
-    const data = this.chkData(jsonData, req, res, false);
+    const data = AdminRelease.chkData(jsonData, req, res, false);
     if (!data) return true;
 
     if (!data.chkServer && !data.chkApi && !data.chkWeb && !data.chkEnv) {
@@ -353,7 +315,7 @@ export class AdminRelease implements IApiBase {
         jsonData = JSON.parse(body.subarray(0, index).toString());
         fileContent = body.subarray(index + 2);
       }
-      const data = this.chkData(jsonData, req, res, true);
+      const data = AdminRelease.chkData(jsonData, req, res, true);
       if (!data) return true;
 
       const toList = data.toList as string;

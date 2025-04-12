@@ -9,7 +9,9 @@ import {
   ModalWindow,
   MessageBox,
   MessageBoxButtonProps,
-  createSelectBox,
+  MessageBoxSelect,
+  NotificationColor,
+  MessageBoxInput,
 } from 'lupine.js';
 
 const TestTextFontSize = () => {
@@ -55,7 +57,7 @@ const TestButtons = () => {
   const doModal = (closeWhenClickOutside: boolean) => {
     ModalWindow.show({
       title: 'Save Menu',
-      buttons: ['Cancel', 'Save'],
+      buttons: ['Ok', 'Cancel'],
       closeWhenClickOutside,
       contentMinWidth: '50%',
       handleClicked: (index: number, close: () => void) => {
@@ -136,8 +138,8 @@ const TestButtons = () => {
           class='button-base mr-m'
           onClick={() => {
             const options = ['Option 1', 'Option 2', 'Option 3'];
-            const content = createSelectBox('Select an option', options, (option: string) => {
-              console.log('Selected:', option);
+            const content = MessageBoxSelect('Select an option', options, (option: string) => {
+              NotificationMessage.sendMessage('You selected: ' + option, NotificationColor.Success);
             });
             MessageBox.show({
               title: 'Title',
@@ -151,6 +153,26 @@ const TestButtons = () => {
           }}
         >
           Select an option
+        </button>
+
+        <button
+          class='button-base mr-m'
+          onClick={() => {
+            const content = MessageBoxInput('Enter a value', 'default value', (value: string) => {
+              NotificationMessage.sendMessage('You entered: ' + value, NotificationColor.Success);
+            });
+            MessageBox.show({
+              title: 'Title',
+              buttonType: MessageBoxButtonProps.YesNo,
+              contentMinWidth: '300px',
+              handleClicked: (index: number, close) => {
+                close();
+              },
+              children: content,
+            });
+          }}
+        >
+          Input a value
         </button>
 
         <button class='button-base mr-m' disabled={true}>

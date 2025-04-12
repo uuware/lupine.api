@@ -171,7 +171,11 @@ export class LogWriter {
     const s = util.format(...messageList);
     pid = pid ? pid : process.pid;
     const ns = !namespace ? '' : '[' + namespace + '] ';
-    const msg = `${this.timestamp()} ${level} [${pid}${uuid}] ${ns}${s}`;
+    // Safety check, cut it if the string is too long
+    if (s.length > 1024) {
+      console.warn('Log string is too long: ' + s.length);
+    }
+    const msg = `${this.timestamp()} ${level} [${pid}${uuid}] ${ns}${s.length > 1024 ? s.substring(0, 1024) : s}`;
     if (this.config.outToFile) {
       if (this.savedSize >= this.config.maxSize) {
         this.checkSize();

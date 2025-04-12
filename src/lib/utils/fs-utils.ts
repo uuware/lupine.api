@@ -71,9 +71,18 @@ export class FsUtils {
     }
   };
 
-  static pathUnlink = async (filePath: string) => {
+  static unlinkPath = async (filePath: string) => {
     try {
       await fs.unlink(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  static renamePath = async (filePath: string, newPath: string) => {
+    try {
+      await fs.rename(filePath, newPath);
       return true;
     } catch {
       return false;

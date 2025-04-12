@@ -4,8 +4,9 @@ import { IApiBase, Logger, ServerRequest, ApiRouter } from 'lupine.api';
 import { AdminDb } from './admin-db';
 import { AdminMenu } from './admin-menu';
 import { devAdminAuth, needDevAdminSession } from './admin-auth';
-import { getPerformanceData } from './admin-performance';
+import { AdminPerformance } from './admin-performance';
 import { AdminRelease } from './admin-release';
+import { AdminResources } from './admin-resources';
 
 const logger = new Logger('admin-api');
 
@@ -31,10 +32,14 @@ export class AdminApi implements IApiBase {
     const adminMenus = new AdminMenu();
     this.router.use('/menu', needDevAdminSession, adminMenus.getRouter());
 
-    this.router.use('/performance', needDevAdminSession, getPerformanceData);
+    const adminPerformance = new AdminPerformance();
+    this.router.use('/performance', adminPerformance.getRouter());
 
     const adminRelease = new AdminRelease();
     this.router.use('/release', adminRelease.getRouter());
+
+    const adminResources = new AdminResources();
+    this.router.use('/resources', adminResources.getRouter());
 
     this.router.use('/auth', async (req: ServerRequest, res: ServerResponse) => {
       return devAdminAuth(req, res);
