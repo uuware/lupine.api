@@ -1,11 +1,11 @@
 import {
   CssProps,
   HtmlVar,
+  ModalWindow,
   NotificationColor,
   NotificationMessage,
   PagingLink,
   RefProps,
-  showModal,
   ToggleSwitch,
   ToggleSwitchUpdateProps,
 } from 'lupine.js';
@@ -140,18 +140,18 @@ const showBookEditItem = async (item: SampleDataProps, update: (item: SampleData
   const handleClicked = async (index: number) => {
     if (index === 0) {
       updateFn.cancel?.();
-      modal.close();
+      modalClose();
     }
     if (index === 1) {
       const newItem = updateFn.save?.();
       if (newItem) {
         update(newItem);
-        modal.close();
+        modalClose();
       }
     }
   };
   const updateFn: SampleDataUpdateProps = {};
-  const modal = await showModal({
+  const modalClose = await ModalWindow.show({
     title: 'Edit Sample Data',
     buttons: ['Cancel', 'Save'],
     // contentMaxHeight: '400px',

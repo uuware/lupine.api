@@ -4,9 +4,12 @@ import {
   notificationColorFromValue,
   PopupMenuWithButton,
   PopupMenuWithLabel,
-  showModal,
   ToggleSwitch,
   ToggleSwitchSize,
+  ModalWindow,
+  MessageBox,
+  MessageBoxButtonProps,
+  createSelectBox,
 } from 'lupine.js';
 
 const TestTextFontSize = () => {
@@ -49,12 +52,14 @@ const TestColors = () => {
 };
 
 const TestButtons = () => {
-  const doModal = () => {
-    showModal({
+  const doModal = (closeWhenClickOutside: boolean) => {
+    ModalWindow.show({
       title: 'Save Menu',
       buttons: ['Cancel', 'Save'],
-      handleClicked: (index: number, closeHandler: () => void) => {
-        closeHandler();
+      closeWhenClickOutside,
+      contentMinWidth: '50%',
+      handleClicked: (index: number, close: () => void) => {
+        close();
       },
       children: <div>test Modal</div>,
     });
@@ -70,29 +75,85 @@ const TestButtons = () => {
   return (
     <div>
       <div class='row-box mb-s'>
-        <button class='button-base' onClick={() => doModal()}>
+        <button class='button-base mr-m' onClick={() => doModal(true)}>
+          Modal (close click outside)
+        </button>
+        <button class='button-base mr-m' onClick={() => doModal(false)}>
           Test Modal
         </button>
-        <button class='button-base' onClick={() => NotificationMessage.sendMessage('Test Message.')}>
+        <button class='button-base mr-m' onClick={() => NotificationMessage.sendMessage('Test Message.')}>
           Notice Message
         </button>
         <button
-          class='button-base'
+          class='button-base mr-m'
           onClick={() =>
             FloatWindow.show({
-              title: 'title',
+              title: 'Title',
               buttons: ['OK'],
-              handleClicked: (index: number, sender) => {
-                sender.close();
+              handleClicked: (index: number, close) => {
+                close();
               },
-              children: <div>This is modal content.</div>,
+              children: <div>This is float window (modal).</div>,
             })
           }
         >
           Float Window
         </button>
-        <button class='button-base'>Clear all items</button>
-        <button class='button-base ml3' disabled={true}>
+        <button
+          class='button-base mr-m'
+          onClick={() =>
+            FloatWindow.show({
+              title: 'Title',
+              buttons: ['OK'],
+              handleClicked: (index: number, close) => {
+                close();
+              },
+              children: <div>This is float window (no modal).</div>,
+              noModal: true,
+            })
+          }
+        >
+          Float Window (no modal)
+        </button>
+        <button
+          class='button-base mr-m'
+          onClick={() =>
+            MessageBox.show({
+              title: 'Title',
+              buttonType: MessageBoxButtonProps.YesNo,
+              contentMinWidth: '200px',
+              handleClicked: (index: number, close) => {
+                close();
+              },
+              children: <div>YesNo dialog.</div>,
+            })
+          }
+        >
+          MessageBox
+        </button>
+
+        <button
+          class='button-base mr-m'
+          onClick={() => {
+            const options = ['Option 1', 'Option 2', 'Option 3'];
+            const content = createSelectBox('Select an option', options, (option: string) => {
+              console.log('Selected:', option);
+            });
+            MessageBox.show({
+              title: 'Title',
+              buttonType: MessageBoxButtonProps.YesNo,
+              contentMinWidth: '300px',
+              handleClicked: (index: number, close) => {
+                close();
+              },
+              children: content,
+            });
+          }}
+        >
+          Select an option
+        </button>
+
+        <button class='button-base mr-m' disabled={true}>
           Disabled Button
         </button>
         <PopupMenuWithButton

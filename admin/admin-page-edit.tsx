@@ -1,4 +1,4 @@
-import { CssProps, DomUtils, getRenderPageProps, NotificationMessage, PopupMenu, RefProps, showModal } from 'lupine.js';
+import { CssProps, DomUtils, getRenderPageProps, ModalWindow, NotificationMessage, PopupMenu, RefProps } from 'lupine.js';
 import { DesignBlockBox } from './design/design-block-box';
 import { BlockTitle } from './design/block-title';
 import { BlockParagraph } from './design/block-paragraph';
@@ -153,9 +153,9 @@ export const AdminPageEditPage = (menuId: string) => {
         }
       }
 
-      modal.close();
+      modalClose();
     };
-    const modal = await showModal({
+    const modalClose = await ModalWindow.show({
       title: 'Save Menu',
       buttons: ['Cancel', 'Save'],
       // contentMaxHeight: '400px',

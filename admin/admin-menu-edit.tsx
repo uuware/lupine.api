@@ -1,4 +1,4 @@
-import { CssProps, DomUtils, getRenderPageProps, NotificationMessage, RefProps, showModal } from 'lupine.js';
+import { CssProps, DomUtils, getRenderPageProps, ModalWindow, NotificationMessage, RefProps } from 'lupine.js';
 
 const fetchTableList = async () => {
   const data = await getRenderPageProps().renderPageFunctions.fetchData('/api/admin/db/tables');
@@ -146,9 +146,9 @@ export const AdminMenuEditPage = (menuId: string) => {
         }
       }
 
-      modal.close();
+      modalClose();
     };
-    const modal = showModal({
+    const modalClose = await ModalWindow.show({
       title: 'Save Menu',
       buttons: ['Cancel', 'Save'],
       // contentMaxHeight: '400px',

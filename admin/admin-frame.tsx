@@ -195,7 +195,7 @@ export const AdminFrame = (props: AdminFrameProps) => {
       borderRight: '7px solid transparent',
       borderTop: '7px solid var(--primary-color)',
       transition: 'all 300ms ease-in-out',
-      zIndex: 'var(--layer-modal)',
+      zIndex: 'var(--layer-sidebar)',
     },
     ['@media only screen and (max-width: ' + maxWidthMobileMenu + ')']: {
       '.body-menu, .close-menu-icon': {

@@ -1,5 +1,11 @@
 import * as fs from 'fs/promises';
 
+export type FileInfoProps = {
+  size: number;
+  mtime: number;
+  isFile: boolean;
+  isDir: boolean;
+};
 export class FsUtils {
   static readFile = async (filePath: string): Promise<string | undefined> => {
     try {
@@ -11,10 +17,10 @@ export class FsUtils {
     }
   };
 
-  static fileInfo = async (filePath: string): Promise<{ size: number; mtime: number } | undefined> => {
+  static fileInfo = async (filePath: string): Promise<FileInfoProps | undefined> => {
     try {
       const stats = await fs.stat(filePath);
-      return { size: stats.size, mtime: stats.mtime.getTime() };
+      return { size: stats.size, mtime: stats.mtime.getTime(), isFile: stats.isFile(), isDir: stats.isDirectory() };
     } catch {
       return undefined;
     }
