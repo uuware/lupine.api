@@ -1,5 +1,5 @@
 import cluster from 'cluster';
-import { Logger } from '../lib';
+import { Logger, LogWriter } from '../lib';
 import { processDebugMessage } from './process-dev-requests';
 
 const logger = new Logger('app-message');
@@ -29,7 +29,9 @@ export const processMessageFromWorker = (msgObject: any) => {
     return;
   }
 
-  if (msgObject.id == 'debug') {
+  if (msgObject.id == 'LogWriter') {
+    LogWriter.messageFromSubProcess(msgObject);
+  } else if (msgObject.id == 'debug') {
     // client to master, now this is master
     logger.debug(
       `Message from worker ${cluster.worker?.id}, message: ${msgObject.message}, appName: ${msgObject.appName}`

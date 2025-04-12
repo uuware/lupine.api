@@ -92,25 +92,28 @@ export const serverSideRenderPage = async (
     renderPageFunctions: renderPageFunctions,
   };
 
-  let cachedHtml = apiCache.get(apiCache.KEYS.TEMPLATE) as CachedHtmlProps;
+  // catch multiple folders
+  let cachedHtml = apiCache.get(apiCache.KEYS.TEMPLATE);
   if (!cachedHtml) {
+    cachedHtml = {};
+    apiCache.set(apiCache.KEYS.TEMPLATE, cachedHtml);
+  }
+  if (!cachedHtml[webRoot]) {
     const content = await fs.promises.readFile(path.join(webRoot, 'index.html'));
-    // const contentWithEnv = replaceWebEnv(content.toString(), appName, false);
     const contentWithEnv = content.toString();
-    cachedHtml = {
+    cachedHtml[webRoot] = {
       content: contentWithEnv,
       webEnv: getWebEnv(appName),
-      // serverConfig: ServerConfig.getAll(appName),
       titleIndex: contentWithEnv.indexOf(titleText),
       metaIndexStart: contentWithEnv.indexOf(metaTextStart),
       metaIndexEnd: contentWithEnv.indexOf(metaTextEnd),
       containerIndex: contentWithEnv.indexOf(containerText),
-    };
-    apiCache.set(apiCache.KEYS.TEMPLATE, cachedHtml);
+    } as CachedHtmlProps;
   }
 
+  const currentCache = cachedHtml[webRoot] as CachedHtmlProps;
   const webSetting = AppConfig.get(AppConfig.WEB_SETTINGS_KEY) || {};
-  const clientDelivery = new ToClientDelivery(cachedHtml.webEnv, webSetting, req.locals.cookies());
+  const clientDelivery = new ToClientDelivery(currentCache.webEnv, webSetting, req.locals.cookies());
   const page = await _lupineJs.generatePage(props, clientDelivery);
   // console.log(`=========load lupin: `, content);
 
@@ -135,23 +138,23 @@ export const serverSideRenderPage = async (
   // });
 
   // data-theme and title
-  res.write(cachedHtml.content.substring(0, cachedHtml.titleIndex).replace('<!--META-THEME-->', page.themeName));
+  res.write(currentCache.content.substring(0, currentCache.titleIndex).replace('<!--META-THEME-->', page.themeName));
   res.write(page.title);
-  res.write(cachedHtml.content.substring(cachedHtml.titleIndex + titleText.length, cachedHtml.metaIndexStart));
+  res.write(currentCache.content.substring(currentCache.titleIndex + titleText.length, currentCache.metaIndexStart));
   // meta data
   res.write(page.metaData);
   res.write(page.globalCss);
-  res.write('<script id="web-env" type="application/json">' + JSON.stringify(cachedHtml.webEnv) + '</script>');
+  res.write('<script id="web-env" type="application/json">' + JSON.stringify(currentCache.webEnv) + '</script>');
   res.write('<script id="web-setting" type="application/json">' + JSON.stringify(webSetting) + '</script>');
   res.write(
-    cachedHtml.content.substring(
-      cachedHtml.metaIndexEnd + metaTextEnd.length,
-      cachedHtml.containerIndex + containerText.length
+    currentCache.content.substring(
+      currentCache.metaIndexEnd + metaTextEnd.length,
+      currentCache.containerIndex + containerText.length
     )
   );
   // content
   res.write(page.content);
-  res.write(cachedHtml.content.substring(cachedHtml.containerIndex + containerText.length));
+  res.write(currentCache.content.substring(currentCache.containerIndex + containerText.length));
 
   // const html = index.toString().replace('<div class="lupine-root"></div>', content);
   // handler200(res, html);

@@ -56,31 +56,28 @@ export class StaticServer {
 
     // const hostPath = req.locals.hostPath;
     const hostPath = apiCache.getAsyncStore().hostPath;
-    const realPath = rootUrl || req.locals.urlWithoutQuery;
-    const urlSplit = realPath.split('?');
+    const urlSplit = (rootUrl || req.locals.urlWithoutQuery).split('?');
     const fullPath = path.join(hostPath.realPath, urlSplit[0]);
+
+    const realPath = await fs.promises.realpath(fullPath);
+    console.log(`request: ${realPath}`);
+    // for security reason, the requested file should be inside of wwwRoot
+    if (realPath.substring(0, hostPath.realPath.length) !== hostPath.realPath) {
+      this.logger.warn(`ACCESS DENIED: ${urlSplit[0]}`);
+      handler200(res, `ACCESS DENIED: ${urlSplit[0]}`);
+      return true;
+    }
+
+    const fPath = (await fs.promises.lstat(realPath)).isDirectory() ? path.join(realPath, 'index.html') : realPath;
     try {
-      if (urlSplit[0] === '/' || urlSplit[0] === '/index.html') {
+      if (fPath.endsWith('index.html') && (await fs.promises.lstat(path.dirname(fPath) + '/index.js')).isFile()) {
         const error = new Error();
         (error as any).code = 'ENOENT';
         // jump to serverSideRenderPage
         throw error;
       }
-
-      const resolvedPath = await fs.promises.realpath(fullPath);
-      console.log(`request: ${resolvedPath}`);
-      // for security reason, the requested file should be inside of wwwRoot
-      if (resolvedPath.substring(0, hostPath.realPath.length) !== hostPath.realPath) {
-        this.logger.warn(`ACCESS DENIED: ${urlSplit[0]}`);
-        handler200(res, `ACCESS DENIED: ${urlSplit[0]}`);
-        return true;
-      }
-
       try {
-        const realFile = (await fs.promises.lstat(resolvedPath)).isDirectory()
-          ? path.join(resolvedPath, 'index.html')
-          : resolvedPath;
-        await this.sendFile(realFile, urlSplit[0], res);
+        await this.sendFile(fPath, urlSplit[0], res);
       } catch (err: any) {
         this.logger.warn(`File not found: ${urlSplit[0]}`);
         handler200(res, `File not found: ${urlSplit[0]}`);
@@ -90,7 +87,7 @@ export class StaticServer {
       // file doesn't exist
       if (err.code === 'ENOENT') {
         if (isServerSideRenderUrl(urlSplit[0])) {
-          serverSideRenderPage(hostPath.appName, hostPath.realPath, urlSplit[0], urlSplit[1], req, res);
+          serverSideRenderPage(hostPath.appName, path.dirname(fPath), urlSplit[0], urlSplit[1], req, res);
         } else {
           this.logger.error(`File not found: ${urlSplit[0]}`);
           handler404(res, `File not found: ${urlSplit[0]}`);
