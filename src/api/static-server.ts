@@ -7,7 +7,7 @@ import { ServerRequest } from '../models/locals-props';
 import { handler200, handler404, handler500 } from './handle-status';
 import { isServerSideRenderUrl, serverSideRenderPage } from './server-render';
 import { serverContentType } from './server-content-type';
-import { apiCache, getTemplateCache } from './api-cache';
+import { apiCache } from './api-cache';
 
 export class StaticServer {
   logger = new Logger('StaticServer');
@@ -58,7 +58,6 @@ export class StaticServer {
     const urlSplit = (rootUrl || req.locals.urlWithoutQuery).split('?');
     const fullPath = path.join(hostPath.realPath, urlSplit[0]);
 
-    const cachedHtml = getTemplateCache();
     const jumpToServerSideRender = () => {
       const error = new Error();
       (error as any).code = 'ENOENT';
@@ -66,6 +65,10 @@ export class StaticServer {
       throw error;
     };
     try {
+      if (urlSplit[0] === '/' || urlSplit[0] === '/index.html') {
+        jumpToServerSideRender();
+      }
+
       // if fullPath doesn't exist, it will throw ENOENT error
       const realPath = await fs.promises.realpath(fullPath);
       console.log(`request: ${realPath}`);
@@ -76,20 +79,23 @@ export class StaticServer {
         return true;
       }
 
-      // _sub_ is the same in server-render file
-      const cacheRoots = cachedHtml['_sub_:' + hostPath.realPath];
-      if (cacheRoots && cacheRoots[realPath] === '1') {
-        jumpToServerSideRender();
+      let finalPath = '';
+      if ((await fs.promises.lstat(realPath)).isDirectory()) {
+        if ((await fs.promises.lstat(path.join(realPath, 'index.js'))).isFile()) {
+          // because it's directory, it means index.html, and if it has index.js, it will jump to serverSideRenderPage
+          jumpToServerSideRender();
+        }
+        // if index.js doesn't exist, it will send index.html
+        finalPath = path.join(realPath, 'index.html');
+      } else {
+        // it's a file, and if it's index.html and the same directory has index.js, it will jump to serverSideRenderPage
+        if (realPath.endsWith('/index.html') && (await fs.promises.lstat(path.join(path.dirname(realPath), 'index.js'))).isFile()) {
+          jumpToServerSideRender();
+        }
+        finalPath = realPath;
       }
-      const finalPath = (await fs.promises.lstat(realPath)).isDirectory()
-        ? path.join(realPath, 'index.html')
-        : realPath;
-      if (
-        finalPath.endsWith('index.html') &&
-        (await fs.promises.lstat(path.dirname(finalPath) + '/index.js')).isFile()
-      ) {
-        jumpToServerSideRender();
-      }
+
+      // now we need to send finalPath file. If finalPath doesn't exist, it will cause error and jump to serverSideRenderPage
       try {
         await this.sendFile(finalPath, urlSplit[0], res);
       } catch (err: any) {

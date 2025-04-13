@@ -54,13 +54,24 @@ export const isServerSideRenderUrl = (urlWithoutQuery: string) => {
 
 // If the folder contains index.html and index.js, then the js will be used to render
 const findNearestRoot = async (cachedHtml: any, webRoot: string, urlWithoutQuery: string) => {
-  // _sub_ is the same in static-server file
+  if (urlWithoutQuery === '/' || urlWithoutQuery === '/index.html') {
+    return webRoot;
+  }
+  if (urlWithoutQuery.endsWith('/')) {
+    urlWithoutQuery = urlWithoutQuery.slice(0, -1);
+  }
+
+  // cache sub folders whether it has both index.html and js, or virtual path
   if (!cachedHtml['_sub_:' + webRoot]) {
     cachedHtml['_sub_:' + webRoot] = {};
   }
 
   const cacheRoots = cachedHtml['_sub_:' + webRoot];
   let nearRoot = path.join(webRoot, urlWithoutQuery);
+  if (cacheRoots[nearRoot] === '1') {
+    return nearRoot;
+  }
+
   while (
     cacheRoots[nearRoot] === '0' ||
     !(await FsUtils.pathExist(path.join(nearRoot, 'index.html'))) ||
@@ -75,9 +86,6 @@ const findNearestRoot = async (cachedHtml: any, webRoot: string, urlWithoutQuery
   if (nearRoot.length <= webRoot.length) {
     nearRoot = webRoot;
   } else {
-    if (nearRoot.endsWith('/') || nearRoot.endsWith('\\')) {
-      nearRoot = nearRoot.slice(0, -1);
-    }
     cacheRoots[nearRoot] = '1';
   }
   return nearRoot;
