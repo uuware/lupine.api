@@ -7,7 +7,7 @@ import { ServerRequest } from '../models/locals-props';
 import { handler200, handler404, handler500 } from './handle-status';
 import { isServerSideRenderUrl, serverSideRenderPage } from './server-render';
 import { serverContentType } from './server-content-type';
-import { apiCache } from './api-cache';
+import { apiCache, getTemplateCache } from './api-cache';
 
 export class StaticServer {
   logger = new Logger('StaticServer');
@@ -54,30 +54,44 @@ export class StaticServer {
   async processRequest(req: ServerRequest, res: ServerResponse, rootUrl?: string) {
     this.logger.info(`StaticServer, url: ${req.locals.url}, host: ${req.locals.host}, rootUrl: ${rootUrl}`);
 
-    // const hostPath = req.locals.hostPath;
     const hostPath = apiCache.getAsyncStore().hostPath;
     const urlSplit = (rootUrl || req.locals.urlWithoutQuery).split('?');
     const fullPath = path.join(hostPath.realPath, urlSplit[0]);
 
-    const realPath = await fs.promises.realpath(fullPath);
-    console.log(`request: ${realPath}`);
-    // for security reason, the requested file should be inside of wwwRoot
-    if (realPath.substring(0, hostPath.realPath.length) !== hostPath.realPath) {
-      this.logger.warn(`ACCESS DENIED: ${urlSplit[0]}`);
-      handler200(res, `ACCESS DENIED: ${urlSplit[0]}`);
-      return true;
-    }
-
-    const fPath = (await fs.promises.lstat(realPath)).isDirectory() ? path.join(realPath, 'index.html') : realPath;
+    const cachedHtml = getTemplateCache();
+    const jumpToServerSideRender = () => {
+      const error = new Error();
+      (error as any).code = 'ENOENT';
+      // jump to serverSideRenderPage
+      throw error;
+    };
     try {
-      if (fPath.endsWith('index.html') && (await fs.promises.lstat(path.dirname(fPath) + '/index.js')).isFile()) {
-        const error = new Error();
-        (error as any).code = 'ENOENT';
-        // jump to serverSideRenderPage
-        throw error;
+      // if fullPath doesn't exist, it will throw ENOENT error
+      const realPath = await fs.promises.realpath(fullPath);
+      console.log(`request: ${realPath}`);
+      // for security reason, the requested file should be inside of wwwRoot
+      if (realPath.substring(0, hostPath.realPath.length) !== hostPath.realPath) {
+        this.logger.warn(`ACCESS DENIED: ${urlSplit[0]}`);
+        handler200(res, `ACCESS DENIED: ${urlSplit[0]}`);
+        return true;
+      }
+
+      // _sub_ is the same in server-render file
+      const cacheRoots = cachedHtml['_sub_:' + hostPath.realPath];
+      if (cacheRoots && cacheRoots[realPath] === '1') {
+        jumpToServerSideRender();
+      }
+      const finalPath = (await fs.promises.lstat(realPath)).isDirectory()
+        ? path.join(realPath, 'index.html')
+        : realPath;
+      if (
+        finalPath.endsWith('index.html') &&
+        (await fs.promises.lstat(path.dirname(finalPath) + '/index.js')).isFile()
+      ) {
+        jumpToServerSideRender();
       }
       try {
-        await this.sendFile(fPath, urlSplit[0], res);
+        await this.sendFile(finalPath, urlSplit[0], res);
       } catch (err: any) {
         this.logger.warn(`File not found: ${urlSplit[0]}`);
         handler200(res, `File not found: ${urlSplit[0]}`);
@@ -87,7 +101,7 @@ export class StaticServer {
       // file doesn't exist
       if (err.code === 'ENOENT') {
         if (isServerSideRenderUrl(urlSplit[0])) {
-          serverSideRenderPage(hostPath.appName, path.dirname(fPath), urlSplit[0], urlSplit[1], req, res);
+          serverSideRenderPage(hostPath.appName, hostPath.realPath, urlSplit[0], urlSplit[1], req, res);
         } else {
           this.logger.error(`File not found: ${urlSplit[0]}`);
           handler404(res, `File not found: ${urlSplit[0]}`);

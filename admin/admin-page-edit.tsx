@@ -548,7 +548,7 @@ export const AdminPageEditPage = (menuId: string) => {
           <div onClick={addBlock}>Add Block</div>
         </div>
         <div class='edit-page-if pt-s pl-s'>
-          <iframe onLoad={iframeLoad} class='iframe' frameBorder='0' src='/admin-dev/design'></iframe>
+          <iframe onLoad={iframeLoad} class='iframe' frameBorder='0' src='/admin_dev/design'></iframe>
         </div>
       </div>
     </div>

@@ -118,7 +118,7 @@ export class WebListener {
       host,
       url,
       hostPath,
-      urlSections: urlSplit[0].split('/').filter((i) => !!i),
+      // urlSections: urlSplit[0].split('/').filter((i) => !!i),
       query: new URLSearchParams(urlSplit[1] || ''),
       urlWithoutQuery: urlSplit[0],
       urlParameters: new SimpleStorage({}),

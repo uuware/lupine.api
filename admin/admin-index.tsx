@@ -17,40 +17,40 @@ export const checkAuth = async (props: PageProps) => {
 
   const json = await fetchAuth(props);
   console.log('======auth', json);
-  if ((typeof json === 'undefined' || !json.result) && props.url !== '/admin-dev/login') {
-    return Redirect({ url: '/admin-dev/login' });
+  if ((typeof json === 'undefined' || !json.result) && props.url !== '/admin_dev/login') {
+    return Redirect({ url: '/admin_dev/login' });
   }
   return null;
 };
 
-export const bindAdmin = async (props: PageProps) => {
-  MetaData({ name: 'robots', content: 'noindex, nofollow' });
+// export const bindAdmin = async (props: PageProps) => {
+//   MetaData({ name: 'robots', content: 'noindex, nofollow' });
 
-  if (typeof document === 'undefined') {
-    // no ssr for admin pages
-    return await BlankPage(props);
-  }
+//   if (typeof document === 'undefined') {
+//     // no ssr for admin pages
+//     return await BlankPage(props);
+//   }
 
-  const json = await fetchAuth(props);
-  console.log('======auth', json);
-  if ((typeof json === 'undefined' || !json.result) && props.url !== '/admin-dev/login') {
-    return Redirect({ url: '/admin-dev/login' });
-  }
+//   const json = await fetchAuth(props);
+//   console.log('======auth', json);
+//   if ((typeof json === 'undefined' || !json.result) && props.url !== '/admin_dev/login') {
+//     return Redirect({ url: '/admin_dev/login' });
+//   }
 
-  if (props.urlSections[1] === 'login') {
-    if (json && json.result) {
-      return Redirect({ url: '/admin-dev' });
-    }
-    return await AdminLoginPage(props);
-  }
+//   if (props.urlSections[1] === 'login') {
+//     if (json && json.result) {
+//       return Redirect({ url: '/admin_dev' });
+//     }
+//     return await AdminLoginPage(props);
+//   }
 
-  return await AdminIndexPage(props);
-};
+//   return await AdminIndexPage(props);
+// };
 
 export const AdminIndexPage = async (props: PageProps) => {
   const onClick = () => {
     DomUtils.clearCookie('_token_dev', '/');
-    window.location.href = '/admin-dev';
+    window.location.href = '/admin_dev';
   };
   return (
     <AdminFrame title='Welcome...'>

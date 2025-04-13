@@ -8,7 +8,7 @@ export type LocalsProps = {
   host: string;
   url: string;
   hostPath: HostToPathProps;
-  urlSections: string[];
+  // urlSections: string[];
   query: URLSearchParams;
   urlWithoutQuery: string;
   urlParameters: ISimpleStorage;

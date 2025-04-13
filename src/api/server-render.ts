@@ -1,14 +1,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ServerResponse } from 'http';
-import { Logger } from '../lib';
+import { FsUtils, Logger } from '../lib';
 import { getWebEnv } from '../lib';
 import { AppConfig } from './api-config';
 import { ServerRequest } from '../models/locals-props';
 import { ToClientDelivery } from './to-client-delivery';
 import { IToClientDelivery } from '../models/to-client-delivery-props';
 import { JsonObject } from '../models/json-object';
-import { apiCache } from './api-cache';
+import { getTemplateCache } from './api-cache';
 
 const logger = new Logger('StaticServer');
 
@@ -52,6 +52,37 @@ export const isServerSideRenderUrl = (urlWithoutQuery: string) => {
   return ext === '' || ext === 'html';
 };
 
+// If the folder contains index.html and index.js, then the js will be used to render
+const findNearestRoot = async (cachedHtml: any, webRoot: string, urlWithoutQuery: string) => {
+  // _sub_ is the same in static-server file
+  if (!cachedHtml['_sub_:' + webRoot]) {
+    cachedHtml['_sub_:' + webRoot] = {};
+  }
+
+  const cacheRoots = cachedHtml['_sub_:' + webRoot];
+  let nearRoot = path.join(webRoot, urlWithoutQuery);
+  while (
+    cacheRoots[nearRoot] === '0' ||
+    !(await FsUtils.pathExist(path.join(nearRoot, 'index.html'))) ||
+    !(await FsUtils.pathExist(path.join(nearRoot, 'index.js')))
+  ) {
+    cacheRoots[nearRoot] = '0';
+    nearRoot = path.dirname(nearRoot);
+    if (cacheRoots[nearRoot] === '1' || nearRoot.length <= webRoot.length) {
+      break;
+    }
+  }
+  if (nearRoot.length <= webRoot.length) {
+    nearRoot = webRoot;
+  } else {
+    if (nearRoot.endsWith('/') || nearRoot.endsWith('\\')) {
+      nearRoot = nearRoot.slice(0, -1);
+    }
+    cacheRoots[nearRoot] = '1';
+  }
+  return nearRoot;
+};
+
 const titleText = '<!--META-TITLE-->';
 const metaTextStart = '<!--META-ENV-START-->';
 const metaTextEnd = '<!--META-ENV-END-->';
@@ -75,9 +106,15 @@ export const serverSideRenderPage = async (
 ) => {
   console.log(`=========SSR, root: ${webRoot}, url: ${urlWithoutQuery}`);
 
+  // cache multiple folders
+  const cachedHtml = getTemplateCache();
+
+  // in order to support virtual path and also sub folders, here needs to find nearest sub folder which contains index.js
+  const nearRoot = await findNearestRoot(cachedHtml, webRoot, urlWithoutQuery);
+
   // the FE code needs to export _lupineJs
   // const lupinJs = await import(webRoot + '/index.js');
-  const lupinJs = require(webRoot + '/index.js');
+  const lupinJs = require(path.join(nearRoot, 'index.js'));
   if (!lupinJs || !lupinJs._lupineJs) {
     throw new Error('_lupineJs is not defined');
   }
@@ -86,22 +123,16 @@ export const serverSideRenderPage = async (
   const _lupineJs = lupinJs._lupineJs() as _LupineJs;
   const props = {
     url: urlWithoutQuery,
-    urlSections: urlWithoutQuery.split('/').filter((i) => !!i),
+    // urlSections: urlWithoutQuery.split('/').filter((i) => !!i),
     query: Object.fromEntries(new URLSearchParams(urlQuery || '')), //new URLSearchParams(urlQuery || ''),
     urlParameters: {},
     renderPageFunctions: renderPageFunctions,
   };
 
-  // catch multiple folders
-  let cachedHtml = apiCache.get(apiCache.KEYS.TEMPLATE);
-  if (!cachedHtml) {
-    cachedHtml = {};
-    apiCache.set(apiCache.KEYS.TEMPLATE, cachedHtml);
-  }
-  if (!cachedHtml[webRoot]) {
-    const content = await fs.promises.readFile(path.join(webRoot, 'index.html'));
+  if (!cachedHtml[nearRoot]) {
+    const content = await fs.promises.readFile(path.join(nearRoot, 'index.html'));
     const contentWithEnv = content.toString();
-    cachedHtml[webRoot] = {
+    cachedHtml[nearRoot] = {
       content: contentWithEnv,
       webEnv: getWebEnv(appName),
       titleIndex: contentWithEnv.indexOf(titleText),
@@ -111,7 +142,7 @@ export const serverSideRenderPage = async (
     } as CachedHtmlProps;
   }
 
-  const currentCache = cachedHtml[webRoot] as CachedHtmlProps;
+  const currentCache = cachedHtml[nearRoot] as CachedHtmlProps;
   const webSetting = AppConfig.get(AppConfig.WEB_SETTINGS_KEY) || {};
   const clientDelivery = new ToClientDelivery(currentCache.webEnv, webSetting, req.locals.cookies());
   const page = await _lupineJs.generatePage(props, clientDelivery);

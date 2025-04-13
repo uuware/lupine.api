@@ -58,7 +58,7 @@ export const AdminLoginPage = async (props: PageProps) => {
     }
     if (auth.result) {
       DomUtils.setCookie('_token_dev', auth.result, 30, '/');
-      window.location.href = '/admin-dev';
+      window.location.href = '/admin_dev';
     }
   };
   return (

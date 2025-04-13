@@ -6,6 +6,15 @@ import { asyncLocalStorage } from './async-storage';
 import { HostToPathProps } from '../models/host-to-path-props';
 import { AsyncStorageProps } from '../models';
 
+export const getTemplateCache = () => {
+  let cachedHtml = apiCache.get(apiCache.KEYS.TEMPLATE);
+  if (!cachedHtml) {
+    cachedHtml = {};
+    apiCache.set(apiCache.KEYS.TEMPLATE, cachedHtml);
+  }
+  return cachedHtml;
+};
+
 enum ApiCacheKeys {
   TEMPLATE = 'TEMPLATE',
   DB = 'DB',
