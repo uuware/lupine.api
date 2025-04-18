@@ -1,16 +1,8 @@
 import { ServerResponse } from 'http';
-import {
-  IApiBase,
-  Logger,
-  apiCache,
-  ServerRequest,
-  ApiRouter,
-  ApiHelper,
-  langHelper,
-  FsUtils,
-} from 'lupine.api';
+import { IApiBase, Logger, apiCache, ServerRequest, ApiRouter, ApiHelper, langHelper, FsUtils } from 'lupine.api';
 import path from 'path';
 import { needDevAdminSession } from './admin-auth';
+import { adminTokenHelper } from './admin-token-helper';
 
 export class AdminRelease implements IApiBase {
   private logger = new Logger('release-api');
@@ -38,7 +30,7 @@ export class AdminRelease implements IApiBase {
 
   async refreshCache(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
-    const data = AdminRelease.chkData(jsonData, req, res, false);
+    const data = await AdminRelease.chkData(jsonData, req, res, false);
     if (!data) return true;
 
     let targetUrl = data.targetUrl as string;
@@ -65,7 +57,8 @@ export class AdminRelease implements IApiBase {
     return true;
   }
 
-  public static chkData(data: any, req: ServerRequest, res: ServerResponse, chkCredential: boolean) {
+  public static async chkData(data: any, req: ServerRequest, res: ServerResponse, chkCredential: boolean) {
+    // add access token
     if (
       !data ||
       Array.isArray(data) ||
@@ -82,6 +75,20 @@ export class AdminRelease implements IApiBase {
       return false;
     }
     if (chkCredential) {
+      if (data.accessToken) {
+        if (await adminTokenHelper.validateToken(data.accessToken)) {
+          return data;
+        } else if (data.accessToken === `${process.env['DEV_ADMIN_USER']}@${process.env['DEV_ADMIN_PASS']}`) {
+          return data;
+        } else {
+          const response = {
+            status: 'error',
+            message: 'Wrong data [wrong token].', //langHelper.getLang('shared:wrong_data'),
+          };
+          ApiHelper.sendJson(req, res, response);
+          return false;
+        }
+      }
       if (data.adminUser !== process.env['DEV_ADMIN_USER'] || data.adminPass !== process.env['DEV_ADMIN_PASS']) {
         const response = {
           status: 'error',
@@ -97,7 +104,7 @@ export class AdminRelease implements IApiBase {
   // this is called by the FE, then call byClientCheck to get remote server's information
   async check(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
-    const data = AdminRelease.chkData(jsonData, req, res, false);
+    const data = await AdminRelease.chkData(jsonData, req, res, false);
     if (!data) return true;
 
     // From app list is from local
@@ -133,7 +140,7 @@ export class AdminRelease implements IApiBase {
   // called by clients
   async byClientCheck(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
-    const data = AdminRelease.chkData(jsonData, req, res, true);
+    const data = await AdminRelease.chkData(jsonData, req, res, true);
     if (!data) return true;
 
     const appData = apiCache.getAppData();
@@ -178,7 +185,7 @@ export class AdminRelease implements IApiBase {
 
   async update(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
-    const data = AdminRelease.chkData(jsonData, req, res, false);
+    const data = await AdminRelease.chkData(jsonData, req, res, false);
     if (!data) return true;
 
     if (!data.chkServer && !data.chkApi && !data.chkWeb && !data.chkEnv) {
@@ -315,7 +322,7 @@ export class AdminRelease implements IApiBase {
         jsonData = JSON.parse(body.subarray(0, index).toString());
         fileContent = body.subarray(index + 2);
       }
-      const data = AdminRelease.chkData(jsonData, req, res, true);
+      const data = await AdminRelease.chkData(jsonData, req, res, true);
       if (!data) return true;
 
       const toList = data.toList as string;

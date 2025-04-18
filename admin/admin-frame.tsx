@@ -25,6 +25,7 @@ import { AdminReleasePage } from './admin-release';
 import { AdminTestPage } from './admin-test';
 import { AdminTestEditPage } from './admin-test-edit';
 import { AdminResourcesPage } from './admin-resources';
+import { AdminTokensPage } from './admin-tokens';
 
 export type AdminFrameProps = {
   children: ComponentChildren;
@@ -114,11 +115,24 @@ export const AdminFrame = (props: AdminFrameProps) => {
         },
       ],
     },
+
     {
-      text: 'Release',
+      text: 'Access',
       url: '',
-      js: () => addPanel('Release', AdminReleasePage()),
+      items: [
+        {
+          text: 'Release',
+          url: '',
+          js: () => addPanel('Release', AdminReleasePage()),
+        },
+        {
+          text: 'Tokens',
+          url: '',
+          js: () => addPanel('Tokens', AdminTokensPage()),
+        },
+      ],
     },
+
     {
       text: 'Server Info',
       url: '',

@@ -22,7 +22,7 @@ export class ApiSharedStorage {
   // called from primary before exit, or from api to save changes
   async save() {
     const appName = apiCache.getAppName();
-    this.getAppSharedStorage().save(appName);
+    await this.getAppSharedStorage().save(appName);
   }
 
   get(key: string): Promise<string> {

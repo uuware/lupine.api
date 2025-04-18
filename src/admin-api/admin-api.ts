@@ -7,6 +7,7 @@ import { devAdminAuth, needDevAdminSession } from './admin-auth';
 import { AdminPerformance } from './admin-performance';
 import { AdminRelease } from './admin-release';
 import { AdminResources } from './admin-resources';
+import { AdminTokens } from './admin-tokens';
 
 const logger = new Logger('admin-api');
 
@@ -40,6 +41,9 @@ export class AdminApi implements IApiBase {
 
     const adminResources = new AdminResources();
     this.router.use('/resources', adminResources.getRouter());
+
+    const adminTokens = new AdminTokens();
+    this.router.use('/tokens', adminTokens.getRouter());
 
     this.router.use('/auth', async (req: ServerRequest, res: ServerResponse) => {
       return devAdminAuth(req, res);

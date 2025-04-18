@@ -8,7 +8,6 @@ import {
   RefProps,
 } from 'lupine.js';
 
-// https://www.toptal.com/designers/htmlarrows/symbols/
 const ReleaseList = (props: { result: any; onUpdate: () => void }) => {
   const ref: RefProps = {
     onLoad: async () => {
@@ -85,7 +84,7 @@ const ReleaseList = (props: { result: any; onUpdate: () => void }) => {
 };
 
 export const AdminReleasePage = () => {
-  const fetchData = async (options: { adminUser: string; adminPass: string }) => {
+  const fetchData = async (options: { adminUser: string; adminPass: string; accessToken: string }) => {
     const data = await getRenderPageProps().renderPageFunctions.fetchData('/api/admin/release/check', options);
     console.log('AdminRelease', data);
     return data.json;
@@ -103,6 +102,7 @@ export const AdminReleasePage = () => {
       targetUrl: DomUtils.getValue('.target-url'),
       adminUser: DomUtils.getValue('.dev-admin-user'),
       adminPass: DomUtils.getValue('.dev-admin-pass'),
+      accessToken: DomUtils.getValue('.access-token'),
       fromList: DomUtils.getValue('.from-list') || dataOld.fromList,
     };
     localStorage.setItem('admin-release', JSON.stringify(data));
@@ -155,7 +155,7 @@ export const AdminReleasePage = () => {
 
   const onCheck = async () => {
     const data = getDomData();
-    if (!data.adminUser || !data.adminPass || !data.targetUrl) {
+    if (!data.accessToken || !data.adminUser || !data.adminPass || !data.targetUrl) {
       NotificationMessage.sendMessage('Please fill in all fields', NotificationColor.Error);
       return;
     }
@@ -172,7 +172,7 @@ export const AdminReleasePage = () => {
 
   const onRefreshCache = async () => {
     const data = getDomData();
-    if (!data.adminUser || !data.adminPass || !data.targetUrl) {
+    if (!data.accessToken || !data.adminUser || !data.adminPass || !data.targetUrl) {
       NotificationMessage.sendMessage('Please fill in all fields', NotificationColor.Error);
       return;
     }
@@ -193,6 +193,7 @@ export const AdminReleasePage = () => {
       DomUtils.setValue('.target-url', data.targetUrl || '');
       DomUtils.setValue('.dev-admin-user', data.adminUser || '');
       DomUtils.setValue('.dev-admin-pass', data.adminPass || '');
+      DomUtils.setValue('.access-token', data.accessToken || '');
     },
   };
   return (
@@ -213,6 +214,12 @@ export const AdminReleasePage = () => {
         <label class='label mr-m release-label'>Dev admin pass:</label>
         <div class='w-50p'>
           <input type='password' class='input-base w-100p dev-admin-pass' placeholder='Dev admin pass' />
+        </div>
+      </div>
+      <div class='row-box mt1 mb1'>
+        <label class='label mr-m release-label'>Access token:</label>
+        <div class='w-50p'>
+          <input type='text' class='input-base w-100p access-token' placeholder='Access token' />
         </div>
       </div>
       <div class='row-box mt1 mb1'>

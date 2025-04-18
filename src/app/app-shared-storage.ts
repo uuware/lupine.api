@@ -15,8 +15,8 @@ import {
   StorageMessageFromSubProcess,
 } from '../models';
 
-// storage cross clusters
-// loaded when start and saved before exist
+// in Api scope, use ApiSharedStorage instead of this
+// storage cross clusters, loaded when start and saved before exist
 export class AppSharedStorage implements IAppSharedStorage {
   private static instance: IAppSharedStorage;
   configMap: { [key: string]: { fPath: string; storage: SimpleStorage } } = {};
