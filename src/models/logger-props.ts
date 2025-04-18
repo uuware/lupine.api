@@ -49,7 +49,7 @@ export const defaultLogConfig: LogConfig = {
   level: (process.env['LOG_LEVEL'] || 'info').trim().toLocaleLowerCase() as LogLevels,
 };
 
-export interface MessageFromSubProcess {
+export interface LogMessageFromSubProcess {
   id: string;
   pid: number | undefined;
   uuid?: string;

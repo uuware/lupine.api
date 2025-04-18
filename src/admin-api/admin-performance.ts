@@ -7,7 +7,6 @@ import {
   ApiHelper,
   JsonObject,
   formatBytes,
-  appCache,
   DateUtils,
   getRequestCount,
   getApiVersion,
@@ -15,6 +14,9 @@ import {
   IApiBase,
   Logger,
   processRefreshCache,
+  AppCacheKeys,
+  AppCacheGlobal,
+  getAppCache,
 } from 'lupine.api';
 import { adminHelper } from './admin-helper';
 import { needDevAdminSession } from './admin-auth';
@@ -49,10 +51,10 @@ export class AdminPerformance implements IApiBase {
       status: 'ok',
       results: {
         appInfo: {
-          debug: appCache.get(appCache.APP_GLOBAL, appCache.KEYS.APP_DEBUG),
+          debug: getAppCache().get(AppCacheGlobal, AppCacheKeys.APP_DEBUG),
           apiVersion: getApiVersion(),
-          appStartTime: appCache.get(appCache.APP_GLOBAL, appCache.KEYS.START_TIME),
-          runningTime: DateUtils.diffString(new Date(), appCache.get(appCache.APP_GLOBAL, appCache.KEYS.START_TIME)),
+          appStartTime: getAppCache().get(AppCacheGlobal, AppCacheKeys.START_TIME),
+          runningTime: DateUtils.diffString(new Date(), getAppCache().get(AppCacheGlobal, AppCacheKeys.START_TIME)),
           // request info
           // process info
           inProcessingRequests: getRequestCount(),

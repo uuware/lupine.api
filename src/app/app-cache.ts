@@ -1,25 +1,16 @@
 /**
  * A simple settings/config class for storing key/value pairs in memory
  */
-enum AppCacheKeys {
-  APP_LIST = 'APP_LIST', // all app names list
-  TEMPLATE = 'TEMPLATE',
-  APP_DATA = 'APP_DATA',
-  APP_DEBUG = 'APP_DEBUG',
-  NODE_ENV = 'NODE_ENV',
-  API_MODULE = 'API_MODULE',
-  API_CONFIG = 'API_CONFIG',
-  RENDER_PAGE_FUNCTIONS = 'RENDER_PAGE_FUNCTIONS',
 
-  START_TIME = 'START_TIME',
-}
+import { AppCacheGlobal, AppCacheKeys, IAppCache } from '../models/app-cache-props';
 
-// Note: since api and app are independent, when accessing from api, AppCache data will be empty!
-export class AppCache {
+// ApiCache doesn't share cross clusters
+// Since apis and app are independent, so AppCache in apis and app are different instances.
+// That's why replaceInstance is used to copy data from app to apis,
+// and also AppCache is not shared cross app and apis, so `set` is only supposed to be called when app starts
+export class AppCache implements IAppCache {
   private static instance: AppCache;
 
-  KEYS = AppCacheKeys;
-  APP_GLOBAL = 'APP_GLOBAL';
   cacheMap: { [key: string]: any } = {};
 
   private constructor() {}
@@ -27,15 +18,8 @@ export class AppCache {
   public static getInstance(): AppCache {
     if (!AppCache.instance) {
       AppCache.instance = new AppCache();
-
-      // const _lupineApi = (globalThis as any)._lupineApi = (globalThis as any)._lupineApi || {};
-      // _lupineApi['appCache'] = AppCache.instance;
     }
     return AppCache.instance;
-  }
-  public static replaceInstance(appCacheFromApp: AppCache) {
-    // At this time, AppCache.getInstance() has already been exported, so we can only replace cacheMap
-    AppCache.instance.cacheMap = appCacheFromApp.cacheMap;
   }
 
   clear(appName: string | undefined) {
@@ -60,11 +44,12 @@ export class AppCache {
   }
 
   clearTemplateCache() {
-    const appList = this.get(this.APP_GLOBAL, AppCacheKeys.APP_LIST) as string[];
+    const appList = this.get(AppCacheGlobal, AppCacheKeys.APP_LIST) as string[];
     appList.forEach((appName) => {
       this.set(appName, AppCacheKeys.TEMPLATE, undefined);
     });
   }
 }
 
-export const appCache = AppCache.getInstance();
+// this can be used in app, but in api, it should use getAppCache()
+export const appCache = /* @__PURE__ */ AppCache.getInstance();

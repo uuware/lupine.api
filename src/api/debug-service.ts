@@ -2,9 +2,9 @@ import { IncomingMessage } from 'http';
 import { Duplex } from 'stream';
 import { MiniWebSocket } from './mini-web-socket';
 
+// This is only used in debug mode (no clusters)
 export class DebugService {
   static clientRefreshFlag = Date.now();
-  static clients = new Set();
   static miniWebSocket = new MiniWebSocket(this.onMessage.bind(this));
 
   public static onMessage(msg: string, socket: Duplex) {
@@ -30,7 +30,9 @@ export class DebugService {
     // socket.write(JSON.stringify({ message: 'flag', flag: DebugService.clientRefreshFlag }));
   }
 
+  // broadcast to all frontend clients
   public static broadcastRefresh() {
+    console.log(`broadcast refresh request to clients.`);
     this.clientRefreshFlag = Date.now();
     const msg = { message: 'Refresh', flag: this.clientRefreshFlag };
     this.miniWebSocket.broadcast(JSON.stringify(msg));

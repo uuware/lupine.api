@@ -1,5 +1,4 @@
 import {
-  MessageBoxInput,
   CssProps,
   DomUtils,
   formatBytes,
@@ -13,6 +12,7 @@ import {
   ProgressUpdateProps,
   uploadFile,
   Progress,
+  InputWithTitle,
 } from 'lupine.js';
 
 // https://www.toptal.com/designers/htmlarrows/symbols/
@@ -174,7 +174,7 @@ export const AdminResourcesPage = () => {
     };
     const onRename = async (fPath: string, fName: string) => {
       let newName = '';
-      const content = MessageBoxInput('Reanme to:', fName, (value: string) => {
+      const content = InputWithTitle('Reanme to:', fName, (value: string) => {
         newName = value;
       });
       MessageBox.show({

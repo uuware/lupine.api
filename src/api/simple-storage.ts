@@ -1,20 +1,57 @@
-import { ISimpleStorage } from '../models/simple-storage-props';
+import * as fs from 'fs/promises';
+import { ISimpleStorage, SimpleStorageDataProps } from '../models/simple-storage-props';
 
 // This class is used by both BE and FE (cookie for SSR).
 export class SimpleStorage implements ISimpleStorage {
-  private settings: { [key: string]: string } = {};
+  private settings: SimpleStorageDataProps = {};
+  private dirty: boolean = false;
 
-  constructor(settings: { [key: string]: string }) {
+  constructor(settings: SimpleStorageDataProps) {
     this.settings = settings;
+  }
+
+  setContent(settings: SimpleStorageDataProps) {
+    this.settings = settings;
+    this.dirty = true;
+  }
+  async saveContent(filePath: string) {
+    await fs.writeFile(filePath, JSON.stringify(this.settings));
+    this.dirty = false;
+  }
+
+  set Dirty(dirty: boolean) {
+    this.dirty = dirty;
+  }
+  get Dirty(): boolean {
+    return this.dirty;
   }
 
   contains(key: string): boolean {
     return key in this.settings;
   }
-  set(key: string, value: string) {
-    return (this.settings[key] = value);
+  size(): number {
+    return Object.keys(this.settings).length;
   }
-  // return result can be empty
+  set(key: string, value: string) {
+    this.dirty = true;
+    if (typeof value === 'undefined') {
+      delete this.settings[key];
+    } else {
+      this.settings[key] = value;
+    }
+  }
+
+  getWithPrefix(prefixKey: string): SimpleStorageDataProps {
+    // get all key startswith prefixKey
+    const result: SimpleStorageDataProps = {};
+    for (let key in this.settings) {
+      if (key.startsWith(prefixKey)) {
+        result[key] = this.settings[key];
+      }
+    }
+    return result;
+  }
+
   get(key: string, defaultValue: string): string {
     return key in this.settings ? this.settings[key] : defaultValue;
   }

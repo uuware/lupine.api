@@ -2,10 +2,9 @@ import { Logger } from '../lib/logger';
 import { ServerResponse } from 'http';
 import { AddressInfo } from 'net';
 import { appLoader } from './app-loader';
-import { appCache } from './app-cache';
-import { apiCache } from '../api';
 import { DebugService } from '../api/debug-service';
-import { ServerRequest } from '../models';
+import { AppCacheGlobal, AppCacheKeys, getAppCache, ServerRequest } from '../models';
+import { cleanupAndExit } from './cleanup-exit';
 const logger = new Logger('process-dev-requests');
 
 function deleteRequireCache(moduleName: string) {
@@ -20,35 +19,33 @@ function deleteRequireCache(moduleName: string) {
   }
 }
 
+// this is a worker and msg is from Primary
+// when debug is on, it's in primary, but it shouldn't receive those msgs
 export const processDebugMessage = async (msgObject: any) => {
   logger.info(`processDebugMessage, id: ${msgObject && msgObject.id}, message: ${msgObject && msgObject.message}`);
   if (msgObject.id === 'debug' && msgObject.message === 'refresh') {
     if (msgObject.appName) {
-      const appConfig = appCache.get(msgObject.appName, appCache.KEYS.API_CONFIG);
+      const appConfig = getAppCache().get(msgObject.appName, AppCacheKeys.API_CONFIG);
       appLoader.refreshApi(appConfig);
     } else {
-      // refresh all
-      let appList = appCache.get(appCache.APP_GLOBAL, appCache.KEYS.APP_LIST);
-      // if (!appList) {
-      //   const appCache2 = apiCache.get(apiCache.KEYS.APP_CACHE); // from parent scope
-      //   appList = appCache2.get(appCache2.APP_GLOBAL, appCache2.KEYS.APP_LIST);
-      // }
+      // refresh all in a worker (app scope)
+      let appList = getAppCache().get(AppCacheGlobal, AppCacheKeys.APP_LIST);
       for (const appName of appList) {
-        const appConfig = appCache.get(appName, appCache.KEYS.API_CONFIG);
+        const appConfig = getAppCache().get(appName, AppCacheKeys.API_CONFIG);
         appLoader.refreshApi(appConfig);
       }
     }
 
-    // clear html cache
-    apiCache.clearTemplateCache();
+    // TemplateCache should be only used in api scope, so shouldn't clear it here
+    // apiCache.clearTemplateCache();
 
-    console.log(`broadcast refresh request to clients.`);
+    // this only works in debug mode (no clusters)
     DebugService.broadcastRefresh();
   }
   if (msgObject.id === 'debug' && msgObject.message === 'suspend') {
     // Only when it's debug mode, it can go here, otherwise suspend should be processed in processMessageFromWorker
     console.log(`[server] Received suspend command.`);
-    process.exit(-1);
+    cleanupAndExit();
   }
 };
 
@@ -60,7 +57,7 @@ export async function processRefreshCache(req: ServerRequest) {
   }
   // if it's debug mode (only one process)
   else {
-    // if (appCache.get(appCache.APP_GLOBAL, appCache.KEYS.API_DEBUG) === true)
+    // if (getAppCache().get(APP_GLOBAL, AppCacheKeys.API_DEBUG) === true)
     const appName = req.locals.query.get('appName');
     processDebugMessage({ id: 'debug', message: 'refresh', appName });
   }
@@ -81,7 +78,7 @@ export async function processDevRequests(req: ServerRequest, res: ServerResponse
       process.send({ id: 'debug', message: 'suspend' });
     }
     // if it's debug mode (only one process)
-    else if (appCache.get(appCache.APP_GLOBAL, appCache.KEYS.APP_DEBUG) === true) {
+    else if (getAppCache().get(AppCacheGlobal, AppCacheKeys.APP_DEBUG) === true) {
       processDebugMessage({ id: 'debug', message: 'suspend' });
     }
   } else if (req.url === '/debug/refresh') {

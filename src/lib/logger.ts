@@ -1,12 +1,13 @@
 // here it must import from async-storage but not from api!
 import { asyncLocalStorage } from '../api/async-storage';
-import { LogConfig, LogLevels, MessageFromSubProcess, LoggerColors, defaultLogConfig } from '../models/logger-props';
+import { LogConfig, LogLevels, LogMessageFromSubProcess, LoggerColors, defaultLogConfig } from '../models/logger-props';
 
 const fs = require('fs');
 const util = require('util');
 const cluster = require('cluster');
 const path = require('path');
 
+export const LogWriterMessageId = 'LogWriter';
 /*
 %O	Pretty-print an Object on multiple lines.
 %o	Pretty-print an Object all on a single line.
@@ -29,7 +30,7 @@ export class LogWriter {
 
   private _init(config: LogConfig) {
     console.debug(`init Log: ${config.level}`);
-    if (!cluster.isMaster) {
+    if (!cluster.isPrimary) {
       console.error('Logger cannot be initialised in sub process.');
       return;
     }
@@ -110,16 +111,16 @@ export class LogWriter {
 			return;
 		}
 
-		if (msgObject.id == 'LogWriter') {
+		if (msgObject.id == LogWriterMessageId) {
 			logger.messageFromSubProcess(msgObject);
 		}
 		...
 	});
 
 	*/
-  // LogWriter only writes to file in Master process, and subProcess sends msg to Master
-  static messageFromSubProcess(msgObject: MessageFromSubProcess) {
-    if (!cluster.isMaster || !msgObject.level || !msgObject.messageList) {
+  // this is primary, msg is from a client. LogWriter only writes to a file in primary
+  static messageFromSubProcess(msgObject: LogMessageFromSubProcess) {
+    if (!cluster.isPrimary || !msgObject.level || !msgObject.messageList) {
       console.error('Logger got wrong message: ', msgObject);
       return;
     }
@@ -143,10 +144,10 @@ export class LogWriter {
   ) {
     const store = asyncLocalStorage.getStore();
     uuid = !uuid && store && store.uuid ? ':' + store.uuid : '';
-    if (!cluster.isMaster) {
+    if (!cluster.isPrimary) {
       if (process && process.send) {
-        const obj: MessageFromSubProcess = {
-          id: 'LogWriter',
+        const obj: LogMessageFromSubProcess = {
+          id: LogWriterMessageId,
           pid: pid || process.pid,
           level,
           namespace,

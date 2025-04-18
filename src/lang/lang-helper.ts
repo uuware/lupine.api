@@ -73,4 +73,4 @@ export class LangHelper {
   }
 }
 
-export const langHelper = LangHelper.getInstance();
+export const langHelper = /* @__PURE__ */ LangHelper.getInstance();

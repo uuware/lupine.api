@@ -1,42 +1,53 @@
 import cluster from 'cluster';
-import { Logger } from '../lib';
 import { WebProcessor } from './web-processor';
 import { appLoader } from './app-loader';
 import { processMessageFromPrimary, processMessageFromWorker } from './app-message';
 import { WebServer } from './web-server';
 import { processDevRequests } from './process-dev-requests';
 import { appCache } from './app-cache';
-import { HostToPath } from '../api';
-import { AppStartProps, InitStartProps } from '../models';
+import { AppStartProps, InitStartProps, AppCacheGlobal, AppCacheKeys } from '../models';
+import { appStorage } from './app-shared-storage';
+import { HostToPath } from './host-to-path';
+import { cleanupAndExit } from './cleanup-exit';
 
+// Don't use logger before set process message
 class AppStart {
   debug: boolean = false;
-  logger: Logger = new Logger('api-start');
   webServer: WebServer | undefined;
 
   getWorkerId() {
     return cluster.worker ? cluster.worker.id : 0;
   }
 
-  start(props: AppStartProps, webServer?: WebServer) {
-    // props.debug = false;
-    appCache.set(appCache.APP_GLOBAL, appCache.KEYS.APP_DEBUG, props.debug);
-    appCache.set(appCache.APP_GLOBAL, appCache.KEYS.START_TIME, new Date());
-    appCache.set(appCache.APP_GLOBAL, appCache.KEYS.RENDER_PAGE_FUNCTIONS, props.renderPageFunctions);
-    this.webServer = webServer || new WebServer();
-
+  async start(props: AppStartProps, webServer?: WebServer) {
     this.debug = props.debug;
     this.bindProcess();
 
+    appCache.set(AppCacheGlobal, AppCacheKeys.APP_DEBUG, props.debug);
+    appCache.set(AppCacheGlobal, AppCacheKeys.START_TIME, new Date());
+    appCache.set(AppCacheGlobal, AppCacheKeys.RENDER_PAGE_FUNCTIONS, props.renderPageFunctions);
+    const appsList = props.apiConfig.webHostMap.map((item) => item.appName);
+    appCache.set(AppCacheGlobal, AppCacheKeys.APP_LIST, appsList);
+
+    this.webServer = webServer || new WebServer();
+
     // call the Logger after initLog
-    this.logger.debug(
+    console.log(
       `${cluster.isPrimary ? 'Primary Process' : 'Worker Process'}, Starting Server - process id ${
         process.pid
       }, path: ${process.cwd()}`
     );
 
+    // when it's cluster.isPrimary or props.debug, initialize the shared storage first
+    if (cluster.isPrimary) {
+      for (let appConfig of props.apiConfig.webHostMap) {
+        await appStorage.load(appConfig.appName, appConfig.dataPath);
+      }
+    }
+
     if (props.debug || !cluster.isPrimary) {
-      this.logger.debug(`Worker id ${this.getWorkerId()}`);
+      console.log(`Worker id ${this.getWorkerId()}`);
+
       process.on('message', processMessageFromPrimary);
 
       HostToPath.setHostToPathList(props.apiConfig.webHostMap);
@@ -44,7 +55,7 @@ class AppStart {
       this.initServer(props.serverConfig);
     } else if (cluster.isPrimary) {
       const numCPUs = require('os').cpus().length;
-      this.logger.debug(`Master Process is trying to fork ${numCPUs} processes`);
+      console.log(`Master Process is trying to fork ${numCPUs} processes`);
 
       for (let i = 0; i < numCPUs; i++) {
         let worker = cluster.fork();
@@ -52,7 +63,7 @@ class AppStart {
       }
 
       cluster.on('death', (worker: any) => {
-        this.logger.warn(`Worker ${worker.pid} died; starting a new one...`);
+        console.log(`Worker ${worker.pid} died; starting a new one...`);
         cluster.fork();
       });
     }
@@ -69,19 +80,19 @@ class AppStart {
     });
 
     // do something when app is closing
+    process.on('beforeExit', async () => {
+      cleanupAndExit();
+    });
     process.on('exit', (ret) => {
       console.log(`${process.pid} - Process on exit, code: ${ret}`);
-    });
-    // catches ctrl+c event
-    process.on('SIGINT', () => {
-      console.log(`${process.pid} - Process on SIGINT, exit.`);
-      process.exit();
     });
     // catches uncaught exceptions
     process.on('uncaughtException', (err: Error) => {
       console.error(`${process.pid} - Process on uncaughtException: `, err);
       console.error(err.stack);
     });
+    // catches ctrl+c event and others
+    ['SIGTERM', 'SIGHUP', 'SIGINT', 'SIGINT', 'SIGBREAK'].forEach((evt) => process.on(evt, cleanupAndExit));
   }
 
   async initServer(config: InitStartProps) {
@@ -91,16 +102,15 @@ class AppStart {
     const sslKeyPath = config.sslKeyPath || '';
     const sslCrtPath = config.sslCrtPath || '';
 
-    this.logger.info(`Starting Web Server, httpPort: ${httpPort}, httpsPort: ${httpsPort}`);
+    console.log(`Starting Web Server, httpPort: ${httpPort}, httpsPort: ${httpsPort}`);
     // for dev to refresh the FE or stop the server
-    // if (this.debug) {
-    // webServer.use('/debug', processDevRequests);
-    WebProcessor.enableDebug('/debug', processDevRequests);
-    // }
+    if (this.debug) {
+      WebProcessor.enableDebug('/debug', processDevRequests);
+    }
 
     this.webServer!.startHttp(httpPort, bindIp);
     this.webServer!.startHttps(httpsPort, bindIp, sslKeyPath, sslCrtPath);
   }
 }
 
-export const appStart = new AppStart();
+export const appStart = /* @__PURE__ */ new AppStart();

@@ -176,16 +176,16 @@ describe('Test logger', () => {
       level: LogLevels.debug,
     });
 
-    // change isMaster to false, so Logger will send message to Master
-    cluster.isMaster = false;
-    logger.debug('isMaster, %d, %s', 1, '2');
-    cluster.isMaster = true;
+    // change isPrimary to false, so Logger will send message to Master
+    cluster.isPrimary = false;
+    logger.debug('isPrimary, %d, %s', 1, '2');
+    cluster.isPrimary = true;
 
     expect(mockSend).toHaveBeenCalledWith({
       color: 204,
       id: 'LogWriter',
       level: 'DEBUG',
-      messageList: ['isMaster, %d, %s', 1, '2'],
+      messageList: ['isPrimary, %d, %s', 1, '2'],
       namespace: 'test2',
       pid: process.pid,
     });

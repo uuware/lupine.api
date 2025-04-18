@@ -38,4 +38,8 @@ export class CryptoUtils {
   static randomString(len: number) {
     return crypto.randomBytes(len).toString('hex');
   }
+
+  static uuid() {
+    return crypto.randomUUID();
+  }
 }

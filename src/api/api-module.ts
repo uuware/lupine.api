@@ -1,9 +1,9 @@
-import { AppCache, DbConfig, DbHelper, HostToPathProps, IApiBase, LogWriter, ServerRequest } from 'lupine.api';
+import { DbConfig, DbHelper, HostToPathProps, IApiBase, ServerRequest } from 'lupine.api';
 import { ServerResponse } from 'http';
 import path from 'path';
-import { apiCache, AppConfig, asyncLocalStorage, bindRenderPageFunctions } from '.';
-import { IApiModule } from '../models/api-module-props';
-import { AsyncStorageProps } from '../models/async-storage-props';
+import { apiCache, asyncLocalStorage, bindRenderPageFunctions } from '.';
+import { AppCacheGlobal, AppCacheKeys, AsyncStorageProps, IApiModule, IAppCache, IAppSharedStorage, setAppCache } from '../models';
+import { apiStorage } from './api-shared-storage';
 
 export class ApiModule implements IApiModule {
   rootApi: IApiBase;
@@ -23,19 +23,19 @@ export class ApiModule implements IApiModule {
   }
 
   // appCache is from app-loader (parent scope), not the same in current scope
-  public async initApi(appConfig: HostToPathProps, appCacheFromApp: AppCache) {
-    // set app's appCache to api's appCache
-    AppCache.replaceInstance(appCacheFromApp);
+  public async initApi(appConfig: HostToPathProps, appCacheFromApp: IAppCache, appStorageFromApp: IAppSharedStorage) {
+    // set app's instances to api
+    setAppCache(appCacheFromApp);
+    // setAppStorage(appStorageFromApp);
+    apiStorage.setAppSharedStorage(appStorageFromApp);
     // set RENDER_PAGE_FUNCTIONS to API module
-    bindRenderPageFunctions(
-      appCacheFromApp.get(appCacheFromApp.APP_GLOBAL, appCacheFromApp.KEYS.RENDER_PAGE_FUNCTIONS)
-    );
+    bindRenderPageFunctions(appCacheFromApp.get(AppCacheGlobal, AppCacheKeys.RENDER_PAGE_FUNCTIONS));
 
     console.log(`appConfig: `, appConfig);
     apiCache.set(apiCache.KEYS.APP_DATA, appConfig);
     // apiCache.set(apiCache.KEYS.APP_CACHE, appCache);
 
-    await this.initConfig(appConfig);
+    // await this.initConfig(appConfig);
     apiCache.clearTemplateCache();
 
     appConfig.dbConfig.filename = path.join(appConfig.dataPath, 'sqlite3.db');
@@ -48,7 +48,7 @@ export class ApiModule implements IApiModule {
     return db;
   }
 
-  private async initConfig(appConfig: HostToPathProps) {
-    await AppConfig.load(appConfig.dataPath);
-  }
+  // private async initConfig(appConfig: HostToPathProps) {
+  //   await AppConfig.load(appConfig.dataPath);
+  // }
 }

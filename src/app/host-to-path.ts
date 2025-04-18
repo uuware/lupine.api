@@ -1,6 +1,6 @@
 // const request = require('request');
 import { Logger } from '../lib';
-import { HostToPathProps } from '../models/host-to-path-props';
+import { HostToPathProps } from '../models';
 
 const logger = new Logger('HostToPath');
 export class HostToPath {

@@ -9,9 +9,9 @@ import {
   ModalWindow,
   MessageBox,
   MessageBoxButtonProps,
-  MessageBoxSelect,
   NotificationColor,
-  MessageBoxInput,
+  SelectWithTitle,
+  InputWithTitle,
 } from 'lupine.js';
 
 const TestTextFontSize = () => {
@@ -137,8 +137,12 @@ const TestButtons = () => {
         <button
           class='button-base mr-m'
           onClick={() => {
-            const options = ['Option 1', 'Option 2', 'Option 3'];
-            const content = MessageBoxSelect('Select an option', options, (option: string) => {
+            const options = [
+              { option: 'Option 1', value: '1' },
+              { option: 'Option 2', value: '2', selected: true },
+              { option: 'Option 3', value: '3' },
+            ];
+            const content = SelectWithTitle('Select an option', options, (option: string) => {
               NotificationMessage.sendMessage('You selected: ' + option, NotificationColor.Success);
             });
             MessageBox.show({
@@ -152,13 +156,38 @@ const TestButtons = () => {
             });
           }}
         >
-          Select an option
+          Select an option (Select)
         </button>
 
         <button
           class='button-base mr-m'
           onClick={() => {
-            const content = MessageBoxInput('Enter a value', 'default value', (value: string) => {
+            const options = [
+              { option: 'Option 1', value: '1' },
+              { option: 'Option 2', value: '2' },
+              { option: 'Option 3', value: '3', selected: true },
+            ];
+            const content = SelectWithTitle('Select an option', options, (option: string) => {
+              NotificationMessage.sendMessage('You selected: ' + option, NotificationColor.Success);
+            }, 3);
+            MessageBox.show({
+              title: 'Title',
+              buttonType: MessageBoxButtonProps.YesNo,
+              contentMinWidth: '300px',
+              handleClicked: (index: number, close) => {
+                close();
+              },
+              children: content,
+            });
+          }}
+        >
+          Select an option (List)
+        </button>
+
+        <button
+          class='button-base mr-m'
+          onClick={() => {
+            const content = InputWithTitle('Enter a value', 'default value', (value: string) => {
               NotificationMessage.sendMessage('You entered: ' + value, NotificationColor.Success);
             });
             MessageBox.show({

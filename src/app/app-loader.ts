@@ -1,9 +1,8 @@
 import { Logger } from '../lib';
 import path from 'path';
 import { appCache } from './app-cache';
-import { HostToPathProps } from '../models/host-to-path-props';
-import { AppLoaderProps } from '../models';
-import { IApiModule } from '../models/api-module-props';
+import { AppCacheKeys, AppLoaderProps, HostToPathProps, IApiModule, setAppCache } from '../models';
+import { appStorage } from './app-shared-storage';
 
 class AppLoader {
   logger: Logger = new Logger('app-loader');
@@ -20,14 +19,9 @@ class AppLoader {
     //   config.webHostMap[key].apiPath = path.join(config.serverRoot, config.webHostMap[key].appName + '_api');
     // }
 
-    appCache.set(
-      appCache.APP_GLOBAL,
-      appCache.KEYS.APP_LIST,
-      config.webHostMap.map((item) => item.appName)
-    );
     for (let appConfig of config.webHostMap) {
       await this.callInitApi(appConfig);
-      appCache.set(appConfig.appName, appCache.KEYS.API_CONFIG, appConfig);
+      appCache.set(appConfig.appName, AppCacheKeys.API_CONFIG, appConfig);
     }
   }
 
@@ -40,10 +34,12 @@ class AppLoader {
 
       if (module && module.apiModule && typeof module.apiModule.initApi === 'function') {
         const apiModule = module.apiModule as IApiModule;
-        appCache.set(appConfig.appName, appCache.KEYS.API_MODULE, apiModule);
+        appCache.set(appConfig.appName, AppCacheKeys.API_MODULE, apiModule);
 
-        // Need to set appCache from app to api
-        await apiModule.initApi(appConfig, appCache);
+        // getAppCache should be only called inside api scope, but set it in app scope in case it's used
+        setAppCache(appCache);
+        // setAppStorage(appStorage);
+        await apiModule.initApi(appConfig, appCache, appStorage);
       }
     } catch (err: any) {
       this.logger.error(`appName: ${appConfig.appName}, load api error: `, err);
@@ -63,4 +59,4 @@ class AppLoader {
   }
 }
 
-export const appLoader = new AppLoader();
+export const appLoader = /* @__PURE__ */ new AppLoader();

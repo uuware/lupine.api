@@ -3,12 +3,12 @@ import * as path from 'path';
 import { ServerResponse } from 'http';
 import { FsUtils, Logger } from '../lib';
 import { getWebEnv } from '../lib';
-import { AppConfig } from './api-config';
 import { ServerRequest } from '../models/locals-props';
 import { ToClientDelivery } from './to-client-delivery';
 import { IToClientDelivery } from '../models/to-client-delivery-props';
 import { JsonObject } from '../models/json-object';
 import { getTemplateCache } from './api-cache';
+import { apiStorage } from './api-shared-storage';
 
 const logger = new Logger('StaticServer');
 
@@ -151,7 +151,8 @@ export const serverSideRenderPage = async (
   }
 
   const currentCache = cachedHtml[nearRoot] as CachedHtmlProps;
-  const webSetting = AppConfig.get(AppConfig.WEB_SETTINGS_KEY) || {};
+  const webSetting = await apiStorage.getWebAll();
+  // const webSetting = AppConfig.get(AppConfig.WEB_SETTINGS_KEY) || {};
   const clientDelivery = new ToClientDelivery(currentCache.webEnv, webSetting, req.locals.cookies());
   const page = await _lupineJs.generatePage(props, clientDelivery);
   // console.log(`=========load lupin: `, content);

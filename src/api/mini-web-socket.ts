@@ -16,6 +16,7 @@ const MASK_KEY_BYTES_LENGTH = 4;
 const OPCODE_TEXT = 0x01; // 1 bit in binary 1
 const FIRST_BIT = 128;
 
+// This is only used in debug mode (no clusters)
 export class MiniWebSocket {
   clientRefreshFlag = Date.now();
   clients = new Set();
