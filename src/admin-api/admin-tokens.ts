@@ -24,7 +24,7 @@ export class AdminTokens implements IApiBase {
   }
 
   async list(req: ServerRequest, res: ServerResponse) {
-    const pageLimit = await apiStorage.getApi('pageLimit') || '15';
+    const pageLimit = await apiStorage.getWeb('pageLimit') || '15';
     const data = req.locals.json() as any;
     const search = data['q'];
     const list = await adminTokenHelper.list(search);
