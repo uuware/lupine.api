@@ -33,7 +33,12 @@ exports.cpIndexHtml = async (htmlFile, outputFile, appName, isMobile, defaultThe
   const f1 = await fileSizeAndTime(htmlFile);
   const f2 = await fileSizeAndTime(outputFile);
 
-  if (!f2 || f1.mtime.getTime() != f2.mtime.getTime() || isMobile) {
+  // once isMobile is changed, then index.html file needs to be rebuilt
+  // if isMobile=true, then the last number is 1, or if isMobile=false, the last is 2
+  const chgTime = Math.trunc(f1.mtime.getTime() / 10) * 10 + (isMobile ? 1 : 2);
+
+  // when it's isMobile, need to update env and configs
+  if (!f2 || f2.mtime.getTime() !== chgTime || isMobile) {
     const inHtml = await fs.readFile(htmlFile, 'utf-8');
     let outStr = inHtml.replace(/{hash}/gi, new Date().getTime().toString(36));
     if (isMobile) {
@@ -53,12 +58,12 @@ exports.cpIndexHtml = async (htmlFile, outputFile, appName, isMobile, defaultThe
         '</script>\r\n' +
         '<script id="web-setting" type="application/json">' +
         JSON.stringify(webConfig) +
-        '</script>\r\n' +
+        '</script>' +
         outStr.substring(metaIndexEnd + metaTextEnd.length);
       // outStr = webEnv.replaceWebEnv(inHtml, appName, true);
     }
     await fs.mkdir(path.dirname(outputFile), { recursive: true });
     await fs.writeFile(outputFile, outStr);
-    await fileUpdateTime(outputFile, f1.mtime);
+    await fileUpdateTime(outputFile, new Date(chgTime));
   }
 };

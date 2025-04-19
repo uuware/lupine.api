@@ -172,7 +172,7 @@ export const AdminPageEditPage = (menuId: string) => {
     });
   };
 
-  let oMenu: HTMLSelectElement;
+  let oMenu!: HTMLSelectElement;
   const ref: RefProps = {
     onLoad: async () => {
       // oMenu = document.querySelector('#menulist')!;
