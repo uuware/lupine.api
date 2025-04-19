@@ -53,7 +53,7 @@ export class AdminTokenHelper {
 
   async remove(token: string) {
     const tokens = await apiStorage.getApi('access-tokens');
-    const tokensJson = JSON.parse(tokens || '{}');
+    const tokensJson = JSON.parse(tokens || '[]');
     const idx = tokensJson.findIndex((item: TokenProps) => item.token === token);
     if (idx !== -1) {
       tokensJson.splice(idx, 1);
@@ -69,7 +69,7 @@ export class AdminTokenHelper {
 
   async validateToken(token: string) {
     const tokens = await apiStorage.getApi('access-tokens');
-    const tokensJson = JSON.parse(tokens || '{}');
+    const tokensJson = JSON.parse(tokens || '[]');
     const idx = tokensJson.findIndex((item: TokenProps) => item.token === token);
     return idx !== -1;
   }

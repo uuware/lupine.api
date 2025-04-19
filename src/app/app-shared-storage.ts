@@ -51,7 +51,7 @@ export class AppSharedStorage implements IAppSharedStorage {
 
   // this is primary, msg is from a client
   messageFromSubProcess(msgObject: StorageMessageFromSubProcess) {
-    if (!cluster.isPrimary || !msgObject.action || !msgObject.key || !msgObject.appName || msgObject.workerId) {
+    if (!cluster.isPrimary || !msgObject.action || !msgObject.key || !msgObject.appName || !msgObject.workerId) {
       console.error('AppStorage got wrong message: ', msgObject);
       return;
     }
