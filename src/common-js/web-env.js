@@ -78,15 +78,27 @@ exports.getWebEnv = (appName) => {
   return envWeb;
 };
 
-// Replace <!--META-ENV-START-->...<!--META-ENV-END--> for mobile app and replace it again for web app
-exports.replaceWebEnv = (html, appName, addMetaTag) => {
-  const envWeb = exports.getWebEnv(appName);
-  return html.replace(
-    /\<\!--META-ENV-START--\>(.*?)\<\!--META-ENV-END--\>/gm,
-    addMetaTag
-      ? '<!--META-ENV-START--><script id="web-env" type="application/json">' +
-          JSON.stringify(envWeb) +
-          '</script><!--META-ENV-END-->'
-      : '<script id="web-env" type="application/json">' + JSON.stringify(envWeb) + '</script>'
-  );
+// defined app-shared-storage-props.ts
+const AppSharedStorageWebPrefix = 'WEB.';
+exports.getWebConfig = (allConfig) => {
+  const result = {};
+  for (let key in allConfig) {
+    if (key.startsWith(AppSharedStorageWebPrefix)) {
+      result[key.substring(AppSharedStorageWebPrefix.length)] = allConfig[key];
+    }
+  }
+  return result;
 };
+
+// // Replace <!--META-ENV-START-->...<!--META-ENV-END--> for mobile app and replace it again for web app
+// exports.replaceWebEnv = (html, appName, addMetaTag) => {
+//   const envWeb = exports.getWebEnv(appName);
+//   return html.replace(
+//     /\<\!--META-ENV-START--\>(.*?)\<\!--META-ENV-END--\>/gm,
+//     addMetaTag
+//       ? '<!--META-ENV-START--><script id="web-env" type="application/json">' +
+//           JSON.stringify(envWeb) +
+//           '</script><!--META-ENV-END-->'
+//       : '<script id="web-env" type="application/json">' + JSON.stringify(envWeb) + '</script>'
+//   );
+// };

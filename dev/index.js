@@ -13,5 +13,5 @@ module.exports = {
   pathExists: fileUtils.pathExists,
   parseEnv: webEnv.parseEnv,
   loadEnv: webEnv.loadEnv,
-  // replaceWebEnv: webEnv.replaceWebEnv,
+  getWebConfig: webEnv.getWebConfig,
 };

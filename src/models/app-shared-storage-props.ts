@@ -15,8 +15,9 @@ export interface StorageMessageFromSubProcess {
   appName: string;
 }
 
-export const AppSharedStorageWebPrefix = 'WEB:';
-export const AppSharedStorageApiPrefix = 'API:';
+// also used in packages\lupine.api\src\common-js\web-env.js
+export const AppSharedStorageWebPrefix = 'WEB.';
+export const AppSharedStorageApiPrefix = 'API.';
 
 export interface IAppSharedStorage {
   // this is a worker and msg is from Primary (but when debug is on, it's primary)
