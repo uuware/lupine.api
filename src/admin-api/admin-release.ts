@@ -1,5 +1,16 @@
 import { ServerResponse } from 'http';
-import { IApiBase, Logger, apiCache, ServerRequest, ApiRouter, ApiHelper, langHelper, FsUtils } from 'lupine.api';
+import {
+  IApiBase,
+  Logger,
+  apiCache,
+  ServerRequest,
+  ApiRouter,
+  ApiHelper,
+  langHelper,
+  FsUtils,
+  adminHelper,
+  processRefreshCache,
+} from 'lupine.api';
 import path from 'path';
 import { needDevAdminSession } from './admin-auth';
 import { adminTokenHelper } from './admin-token-helper';
@@ -21,23 +32,36 @@ export class AdminRelease implements IApiBase {
     this.router.use('/check', needDevAdminSession, this.check.bind(this));
     this.router.use('/update', needDevAdminSession, this.update.bind(this));
     // called online or by clients
-    this.router.use('/refresh-cache', this.refreshCache.bind(this));
+    this.router.use('/refresh-cache', needDevAdminSession, this.refreshCache.bind(this));
 
     // ...ByClient will verify credentials from post, so it doesn't need AdminSession
     this.router.use('/byClientCheck', this.byClientCheck.bind(this));
     this.router.use('/byClientUpdate', this.byClientUpdate.bind(this));
+    this.router.use('/byClientRefreshCache', this.byClientRefreshCache.bind(this));
   }
 
   async refreshCache(req: ServerRequest, res: ServerResponse) {
+    // check whether it's from online admin
+    const json = await adminHelper.getDevAdminFromCookie(req, res, false);
     const jsonData = req.locals.json();
-    const data = await AdminRelease.chkData(jsonData, req, res, false);
+    if (json && jsonData && !Array.isArray(jsonData) && jsonData.isLocal) {
+      await processRefreshCache(req);
+      const response = {
+        status: 'ok',
+        message: 'Cache refreshed successfully.',
+      };
+      ApiHelper.sendJson(req, res, response);
+      return true;
+    }
+
+    const data = await this.chkData(jsonData, req, res, true);
     if (!data) return true;
 
     let targetUrl = data.targetUrl as string;
     if (targetUrl.endsWith('/')) {
       targetUrl = targetUrl.slice(0, -1);
     }
-    const remoteData = await fetch(targetUrl + '/api/admin/performance/refresh-cache', {
+    const remoteData = await fetch(targetUrl + '/api/admin/release/byClientRefreshCache', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -57,16 +81,9 @@ export class AdminRelease implements IApiBase {
     return true;
   }
 
-  public static async chkData(data: any, req: ServerRequest, res: ServerResponse, chkCredential: boolean) {
+  public async chkData(data: any, req: ServerRequest, res: ServerResponse, chkCredential: boolean) {
     // add access token
-    if (
-      !data ||
-      Array.isArray(data) ||
-      typeof data !== 'object' ||
-      !data.adminUser ||
-      !data.adminPass ||
-      !data.targetUrl
-    ) {
+    if (!data || Array.isArray(data) || typeof data !== 'object' || !data.accessToken || !data.targetUrl) {
       const response = {
         status: 'error',
         message: 'Wrong data [missing parameters].', //langHelper.getLang('shared:wrong_data'),
@@ -75,24 +92,17 @@ export class AdminRelease implements IApiBase {
       return false;
     }
     if (chkCredential) {
-      if (data.accessToken) {
-        if (await adminTokenHelper.validateToken(data.accessToken)) {
-          return data;
-        } else if (data.accessToken === `${process.env['DEV_ADMIN_USER']}@${process.env['DEV_ADMIN_PASS']}`) {
-          return data;
-        } else {
-          const response = {
-            status: 'error',
-            message: 'Wrong data [wrong token].', //langHelper.getLang('shared:wrong_data'),
-          };
-          ApiHelper.sendJson(req, res, response);
-          return false;
-        }
-      }
-      if (data.adminUser !== process.env['DEV_ADMIN_USER'] || data.adminPass !== process.env['DEV_ADMIN_PASS']) {
+      if (await adminTokenHelper.validateToken(data.accessToken)) {
+        return data;
+      } else if (
+        process.env['DEV_ADMIN_PASS'] !== '' &&
+        data.accessToken === `${process.env['DEV_ADMIN_USER']}@${process.env['DEV_ADMIN_PASS']}`
+      ) {
+        return data;
+      } else {
         const response = {
           status: 'error',
-          message: 'Wrong data [wrong credentials].', //langHelper.getLang('shared:wrong_data'),
+          message: 'Wrong data [wrong token].', //langHelper.getLang('shared:wrong_data'),
         };
         ApiHelper.sendJson(req, res, response);
         return false;
@@ -104,7 +114,7 @@ export class AdminRelease implements IApiBase {
   // this is called by the FE, then call byClientCheck to get remote server's information
   async check(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
-    const data = await AdminRelease.chkData(jsonData, req, res, false);
+    const data = await this.chkData(jsonData, req, res, false);
     if (!data) return true;
 
     // From app list is from local
@@ -140,7 +150,7 @@ export class AdminRelease implements IApiBase {
   // called by clients
   async byClientCheck(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
-    const data = await AdminRelease.chkData(jsonData, req, res, true);
+    const data = await this.chkData(jsonData, req, res, true);
     if (!data) return true;
 
     const appData = apiCache.getAppData();
@@ -185,7 +195,7 @@ export class AdminRelease implements IApiBase {
 
   async update(req: ServerRequest, res: ServerResponse) {
     const jsonData = req.locals.json();
-    const data = await AdminRelease.chkData(jsonData, req, res, false);
+    const data = await this.chkData(jsonData, req, res, false);
     if (!data) return true;
 
     if (!data.chkServer && !data.chkApi && !data.chkWeb && !data.chkEnv) {
@@ -240,13 +250,7 @@ export class AdminRelease implements IApiBase {
         return true;
       }
     }
-    if (data.chkApi || data.chkServer) {
-      // send request to clear cache
-      await fetch(targetUrl + '/api/admin/release/refresh-cache', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-    }
+
     const response = {
       status: 'ok',
       message: 'updated',
@@ -322,7 +326,7 @@ export class AdminRelease implements IApiBase {
         jsonData = JSON.parse(body.subarray(0, index).toString());
         fileContent = body.subarray(index + 2);
       }
-      const data = await AdminRelease.chkData(jsonData, req, res, true);
+      const data = await this.chkData(jsonData, req, res, true);
       if (!data) return true;
 
       const toList = data.toList as string;
@@ -377,6 +381,20 @@ export class AdminRelease implements IApiBase {
       };
       ApiHelper.sendJson(req, res, response);
     }
+    return true;
+  }
+
+  async byClientRefreshCache(req: ServerRequest, res: ServerResponse) {
+    const jsonData = req.locals.json();
+    const data = await this.chkData(jsonData, req, res, true);
+    if (!data) return true;
+
+    await processRefreshCache(req);
+    const response = {
+      status: 'ok',
+      message: 'Cache refreshed successfully.',
+    };
+    ApiHelper.sendJson(req, res, response);
     return true;
   }
 }

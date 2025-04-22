@@ -84,7 +84,7 @@ const ReleaseList = (props: { result: any; onUpdate: () => void }) => {
 };
 
 export const AdminReleasePage = () => {
-  const fetchData = async (options: { adminUser: string; adminPass: string; accessToken: string }) => {
+  const fetchData = async (options: { targetUrl: string; accessToken: string }) => {
     const data = await getRenderPageProps().renderPageFunctions.fetchData('/api/admin/release/check', options);
     console.log('AdminRelease', data);
     return data.json;
@@ -100,8 +100,6 @@ export const AdminReleasePage = () => {
     const dataOld = JSON.parse(localStorage.getItem('admin-release') || '{}');
     const data = {
       targetUrl: DomUtils.getValue('.target-url'),
-      adminUser: DomUtils.getValue('.dev-admin-user'),
-      adminPass: DomUtils.getValue('.dev-admin-pass'),
       accessToken: DomUtils.getValue('.access-token'),
       fromList: DomUtils.getValue('.from-list') || dataOld.fromList,
     };
@@ -111,7 +109,7 @@ export const AdminReleasePage = () => {
 
   const onUpdate = async () => {
     const data = getDomData();
-    if (!data.adminUser || !data.adminPass || !data.targetUrl) {
+    if (!data.targetUrl || !data.accessToken) {
       NotificationMessage.sendMessage('Please fill in all fields', NotificationColor.Error);
       return;
     }
@@ -155,7 +153,7 @@ export const AdminReleasePage = () => {
 
   const onCheck = async () => {
     const data = getDomData();
-    if (!data.accessToken || !data.adminUser || !data.adminPass || !data.targetUrl) {
+    if (!data.targetUrl || !data.accessToken) {
       NotificationMessage.sendMessage('Please fill in all fields', NotificationColor.Error);
       return;
     }
@@ -170,13 +168,25 @@ export const AdminReleasePage = () => {
     domLog.value = <pre>{JSON.stringify(result, null, 2)}</pre>;
   };
 
-  const onRefreshCache = async () => {
+  const onRefreshCacheLocal = async () => {
+    return onRefreshCache(true);
+  };
+  const onRefreshCacheRemote = async () => {
+    return onRefreshCache(false);
+  };
+  const onRefreshCache = async (isLocal?: boolean) => {
     const data = getDomData();
-    if (!data.accessToken || !data.adminUser || !data.adminPass || !data.targetUrl) {
-      NotificationMessage.sendMessage('Please fill in all fields', NotificationColor.Error);
-      return;
+    if (!isLocal) {
+      if (!data.targetUrl || !data.accessToken) {
+        NotificationMessage.sendMessage('Please fill in all fields', NotificationColor.Error);
+        return;
+      }
     }
-    const response = await getRenderPageProps().renderPageFunctions.fetchData('/api/admin/release/refresh-cache', data);
+
+    const response = await getRenderPageProps().renderPageFunctions.fetchData('/api/admin/release/refresh-cache', {
+      ...data,
+      isLocal,
+    });
     const dataResponse = await response.json;
     console.log('AdminRelease', dataResponse);
     if (!dataResponse || dataResponse.status !== 'ok') {
@@ -191,8 +201,6 @@ export const AdminReleasePage = () => {
     onLoad: async () => {
       const data = JSON.parse(localStorage.getItem('admin-release') || '{}');
       DomUtils.setValue('.target-url', data.targetUrl || '');
-      DomUtils.setValue('.dev-admin-user', data.adminUser || '');
-      DomUtils.setValue('.dev-admin-pass', data.adminPass || '');
       DomUtils.setValue('.access-token', data.accessToken || '');
     },
   };
@@ -205,18 +213,6 @@ export const AdminReleasePage = () => {
         </div>
       </div>
       <div class='row-box mt1 mb1'>
-        <label class='label mr-m release-label'>Dev admin user:</label>
-        <div class='w-50p'>
-          <input type='text' class='input-base w-100p dev-admin-user' placeholder='Dev admin user' />
-        </div>
-      </div>
-      <div class='row-box mt1 mb1'>
-        <label class='label mr-m release-label'>Dev admin pass:</label>
-        <div class='w-50p'>
-          <input type='password' class='input-base w-100p dev-admin-pass' placeholder='Dev admin pass' />
-        </div>
-      </div>
-      <div class='row-box mt1 mb1'>
         <label class='label mr-m release-label'>Access token:</label>
         <div class='w-50p'>
           <input type='text' class='input-base w-100p access-token' placeholder='Access token' />
@@ -226,8 +222,11 @@ export const AdminReleasePage = () => {
         <button onClick={onCheck} class='button-base'>
           Check
         </button>
-        <button onClick={onRefreshCache} class='button-base'>
-          Refresh Cache
+        <button onClick={onRefreshCacheRemote} class='button-base'>
+          Refresh Cache (Remote)
+        </button>
+        <button onClick={onRefreshCacheLocal} class='button-base'>
+          Refresh Cache (Local)
         </button>
       </div>
       {domUpdate.node}

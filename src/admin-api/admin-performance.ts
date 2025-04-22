@@ -13,14 +13,12 @@ import {
   ApiRouter,
   IApiBase,
   Logger,
-  processRefreshCache,
   AppCacheKeys,
   AppCacheGlobal,
   getAppCache,
 } from 'lupine.api';
 import { adminHelper } from './admin-helper';
 import { needDevAdminSession } from './admin-auth';
-import { AdminRelease } from './admin-release';
 
 // #https://github.com/sebhildebrandt/systeminformation
 export class AdminPerformance implements IApiBase {
@@ -38,8 +36,6 @@ export class AdminPerformance implements IApiBase {
   protected mountDashboard() {
     // called by FE
     this.router.use('/data', needDevAdminSession, this.performanceData.bind(this));
-    // local admin session or credentials
-    this.router.use('/refresh-cache', this.refreshCache.bind(this));
   }
 
   async performanceData(req: ServerRequest, res: ServerResponse) {
@@ -126,25 +122,6 @@ export class AdminPerformance implements IApiBase {
           config: undefined,
         },
       },
-    };
-    ApiHelper.sendJson(req, res, response);
-    return true;
-  }
-
-  async refreshCache(req: ServerRequest, res: ServerResponse) {
-    // check whether it's from online admin
-    const json = adminHelper.getDevAdminFromCookie(req, res, false);
-    if (!json) {
-      // whether it has credentials (from Release)
-      const jsonData = req.locals.json();
-      const data = AdminRelease.chkData(jsonData, req, res, true);
-      if (!data) return true;
-    }
-
-    processRefreshCache(req);
-    const response = {
-      status: 'ok',
-      message: 'Cache refreshed successfully.',
     };
     ApiHelper.sendJson(req, res, response);
     return true;

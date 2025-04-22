@@ -34,16 +34,17 @@ export class AdminApi implements IApiBase {
     this.router.use('/menu', needDevAdminSession, adminMenus.getRouter());
 
     const adminPerformance = new AdminPerformance();
-    this.router.use('/performance', adminPerformance.getRouter());
+    this.router.use('/performance', needDevAdminSession, adminPerformance.getRouter());
 
     const adminRelease = new AdminRelease();
+    // as some endpoints check the token, so add needDevAdminSession inside
     this.router.use('/release', adminRelease.getRouter());
 
     const adminResources = new AdminResources();
-    this.router.use('/resources', adminResources.getRouter());
+    this.router.use('/resources', needDevAdminSession, adminResources.getRouter());
 
     const adminTokens = new AdminTokens();
-    this.router.use('/tokens', adminTokens.getRouter());
+    this.router.use('/tokens', needDevAdminSession, adminTokens.getRouter());
 
     this.router.use('/auth', async (req: ServerRequest, res: ServerResponse) => {
       return devAdminAuth(req, res);

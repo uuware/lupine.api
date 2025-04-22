@@ -79,10 +79,10 @@ export async function processDevRequests(req: ServerRequest, res: ServerResponse
     }
     // if it's debug mode (only one process)
     else if (getAppCache().get(AppCacheGlobal, AppCacheKeys.APP_DEBUG) === true) {
-      processDebugMessage({ id: 'debug', message: 'suspend' });
+      await processDebugMessage({ id: 'debug', message: 'suspend' });
     }
   } else if (req.url === '/debug/refresh') {
-    processRefreshCache(req);
+    await processRefreshCache(req);
   }
   if (req.url === '/debug/client') {
   }

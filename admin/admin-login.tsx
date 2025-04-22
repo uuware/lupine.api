@@ -32,6 +32,7 @@ export const AdminLoginPage = async (props: PageProps) => {
       '.login-button button': {
         width: '80%',
         fontSize: '150%',
+        height: '40px',
       },
       '.login-tip': {
         color: 'gray',

@@ -97,8 +97,8 @@ class AppStart {
 
   async initServer(config: InitStartProps) {
     const bindIp = config.bindIp || '::';
-    const httpPort = config.httpPort || 8080;
-    const httpsPort = config.httpsPort || 8443;
+    const httpPort = config.httpPort;
+    const httpsPort = config.httpsPort;
     const sslKeyPath = config.sslKeyPath || '';
     const sslCrtPath = config.sslCrtPath || '';
 
@@ -108,8 +108,8 @@ class AppStart {
       WebProcessor.enableDebug('/debug', processDevRequests);
     }
 
-    this.webServer!.startHttp(httpPort, bindIp);
-    this.webServer!.startHttps(httpsPort, bindIp, sslKeyPath, sslCrtPath);
+    httpPort && this.webServer!.startHttp(httpPort, bindIp);
+    httpsPort && this.webServer!.startHttps(httpsPort, bindIp, sslKeyPath, sslCrtPath);
   }
 }
 

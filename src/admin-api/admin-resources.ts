@@ -9,7 +9,6 @@ import {
   ApiHelper,
   langHelper,
   FsUtils,
-  processRefreshCache,
   adminHelper,
 } from 'lupine.api';
 import path from 'path';
@@ -34,27 +33,6 @@ export class AdminResources implements IApiBase {
     this.router.use('/upload', needDevAdminSession, this.upload.bind(this));
     this.router.use('/rename', needDevAdminSession, this.rename.bind(this));
     this.router.use('/remove', needDevAdminSession, this.remove.bind(this));
-    // called online or by clients
-    this.router.use('/refresh-cache', this.refreshCache.bind(this));
-  }
-
-  async refreshCache(req: ServerRequest, res: ServerResponse) {
-    // check whether it's from online admin
-    const devAdminSession = await adminHelper.getDevAdminFromCookie(req, res, false);
-    if (!devAdminSession) {
-      // whether it has credentials
-      const jsonData = req.locals.json();
-      const data = this.chkData(jsonData, req, res, true);
-      if (!data) return true;
-    }
-
-    processRefreshCache(req);
-    const response = {
-      status: 'ok',
-      message: 'Cache refresh request is sent.',
-    };
-    ApiHelper.sendJson(req, res, response);
-    return true;
   }
 
   async upload(req: ServerRequest, res: ServerResponse) {
