@@ -7,7 +7,7 @@ export type SetCookieProps = {
   expireDays: number;
   path?: string;
   domain?: string;
-  secure?: string;
+  secure?: boolean;
   httpOnly?: boolean;
   Partitioned?: boolean;
   sameSite?: 'strict' | 'lax' | 'none';
