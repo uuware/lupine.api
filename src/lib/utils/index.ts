@@ -8,5 +8,5 @@ export * from './get-env';
 export * from './is-type';
 export * from './load-env';
 export * from './pad';
-export * from './parse-cookies';
+export * from './cookie-util';
 export * from './fs-utils';

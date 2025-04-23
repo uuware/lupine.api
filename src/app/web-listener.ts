@@ -1,11 +1,12 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { Logger } from '../lib/logger';
 import crypto from 'crypto';
-import { parseCookies } from '../lib/utils';
+import { parseCookies } from '../lib/utils/cookie-util';
 import { WebProcessor } from './web-processor';
 import { handler403, handler404, handler500, SimpleStorage } from '../api';
-import { JsonObject, AsyncStorageProps, ServerRequest } from '../models';
+import { JsonObject, AsyncStorageProps, ServerRequest, SetCookieProps } from '../models';
 import { HostToPath } from './host-to-path';
+import { serializeCookie } from '../lib/utils/cookie-util';
 const logger = new Logger('listener');
 
 let MAX_REQUEST_SIZE = 1024 * 1024 * 5;
@@ -111,6 +112,10 @@ export class WebListener {
       }
       return req.locals._cookies;
     };
+    const setCookieFn = (name: string, value: string, options: SetCookieProps): void => {
+      const cookiePair = serializeCookie(name, value, options);
+      res.setHeader('Set-Cookie', cookiePair);
+    };
 
     req.locals = {
       uuid,
@@ -124,6 +129,10 @@ export class WebListener {
       body: undefined,
       json: jsonFn,
       cookies: cookiesFn,
+      setCookie: setCookieFn,
+      clearCookie: (name: string) => {
+        res.setHeader('Set-Cookie', `${name}=; max-age=0`);
+      },
     };
 
     let bigRequest = false;

@@ -3,6 +3,15 @@ import { HostToPathProps } from './host-to-path-props';
 import { JsonObject } from './json-object';
 import { ISimpleStorage } from './simple-storage-props';
 
+export type SetCookieProps = {
+  expireDays: number;
+  path?: string;
+  domain?: string;
+  secure?: string;
+  httpOnly?: boolean;
+  Partitioned?: boolean;
+  sameSite?: 'strict' | 'lax' | 'none';
+};
 export type LocalsProps = {
   uuid: string;
   host: string;
@@ -15,6 +24,8 @@ export type LocalsProps = {
   body: Buffer | undefined;
   json: () => JsonObject | undefined;
   cookies: () => ISimpleStorage;
+  setCookie: (name: string, value: string, options: SetCookieProps) => void;
+  clearCookie: (name: string) => void;
   [key: string]: string | object | undefined | any;
 };
 
