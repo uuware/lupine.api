@@ -172,6 +172,7 @@ export class WebListener {
         if (accessControlAllowHosts.includes(host)) {
           const accessControlAllowOrigin = req.headers.origin || '*';
           res.setHeader('Access-Control-Allow-Origin', accessControlAllowOrigin);
+          res.setHeader('Access-Control-Allow-Credentials', 'true');
         }
 
         const store: AsyncStorageProps = {
