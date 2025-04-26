@@ -12,6 +12,10 @@ import {
   NotificationColor,
   SelectWithTitle,
   InputWithTitle,
+  Spinner01,
+  Spinner02,
+  SpinnerSize,
+  Spinner03,
 } from 'lupine.js';
 
 const TestTextFontSize = () => {
@@ -167,9 +171,14 @@ const TestButtons = () => {
               { option: 'Option 2', value: '2' },
               { option: 'Option 3', value: '3', selected: true },
             ];
-            const content = SelectWithTitle('Select an option', options, (option: string) => {
-              NotificationMessage.sendMessage('You selected: ' + option, NotificationColor.Success);
-            }, 3);
+            const content = SelectWithTitle(
+              'Select an option',
+              options,
+              (option: string) => {
+                NotificationMessage.sendMessage('You selected: ' + option, NotificationColor.Success);
+              },
+              3
+            );
             MessageBox.show({
               title: 'Title',
               buttonType: MessageBoxButtonProps.YesNo,
@@ -327,6 +336,24 @@ export const TestThemesPage = () => {
           <ToggleSwitch checked={false} size={ToggleSwitchSize.Medium} />
           <ToggleSwitch checked={true} size={ToggleSwitchSize.Large} />
           <ToggleSwitch checked={false} size={ToggleSwitchSize.Large} />
+        </div>
+        <div class='row-box mt-s'>
+          <Spinner01 size={SpinnerSize.Small} />
+          <Spinner01 size={SpinnerSize.Medium} />
+          <Spinner01 size={SpinnerSize.Large} />
+          <Spinner01 size={SpinnerSize.LargeLarge} />
+        </div>
+        <div class='row-box mt-s'>
+          <Spinner02 size={SpinnerSize.Small} />
+          <Spinner02 size={SpinnerSize.Medium} />
+          <Spinner02 size={SpinnerSize.Large} />
+          <Spinner02 size={SpinnerSize.LargeLarge} />
+        </div>
+        <div class='row-box mt-s'>
+          <Spinner03 size={SpinnerSize.Small} />
+          <Spinner03 size={SpinnerSize.Medium} />
+          <Spinner03 size={SpinnerSize.Large} />
+          <Spinner03 size={SpinnerSize.LargeLarge} />
         </div>
         <div class='row-box mb-s'>
           <div class='row-box flex1'>
