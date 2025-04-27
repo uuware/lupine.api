@@ -14,4 +14,5 @@ module.exports = {
   parseEnv: webEnv.parseEnv,
   loadEnv: webEnv.loadEnv,
   getWebConfig: webEnv.getWebConfig,
+  pluginIfelse: require('./plugin-ifelse.js'),
 };
