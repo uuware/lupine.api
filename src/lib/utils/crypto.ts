@@ -39,6 +39,10 @@ export class CryptoUtils {
     return crypto.randomBytes(len).toString('hex');
   }
 
+  static randomNumberString(len: number) {
+    return crypto.randomInt(10 ** (len - 1), 10 ** len - 1).toString();
+  }
+
   static uuid() {
     return crypto.randomUUID();
   }
