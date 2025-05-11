@@ -12,16 +12,19 @@ export interface DbConfig {
   filename?: string;
 }
 
-export const defaultDbConfig: DbConfig = {
-  type: process.env['DB_TYPE'] || 'sqlite',
-  host: '',
-  port: 0,
-  user: '',
-  password: '',
-  database: '',
-  poolMin: 1,
-  poolMax: 5,
-  connectionTimeout: 10000,
-  tablePrefix: '',
-  filename: process.env['DB_FILENAME'] || 'sqlite3.db',
+export const getDefaultDbConfig = (): DbConfig => {
+  // process.env may not be initialized at script starting
+  return {
+    type: process.env['DB_TYPE'] || 'sqlite',
+    host: '',
+    port: 0,
+    user: '',
+    password: '',
+    database: '',
+    poolMin: 1,
+    poolMax: 5,
+    connectionTimeout: 10000,
+    tablePrefix: '',
+    filename: process.env['DB_FILENAME'] || 'sqlite3.db',
+  };
 };

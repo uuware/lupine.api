@@ -1,6 +1,6 @@
 // here it must import from async-storage but not from api!
 import { asyncLocalStorage } from '../api/async-storage';
-import { LogConfig, LogLevels, LogMessageFromSubProcess, LoggerColors, defaultLogConfig } from '../models/logger-props';
+import { LogConfig, LogLevels, LogMessageFromSubProcess, LoggerColors, getDefaultLogConfig } from '../models/logger-props';
 
 const fs = require('fs');
 const util = require('util');
@@ -23,10 +23,14 @@ export class LogWriter {
 
   private constructor() {}
 
-  config: LogConfig = defaultLogConfig;
+  private _config: LogConfig | undefined;
+  getConfig = (): LogConfig => {
+    return this._config || getDefaultLogConfig();
+  };
+
   savedSize = -1; // -1 for needing initialize
   fileHandle = 0;
-  level = Object.keys(LogLevels).findIndex((item) => item === this.config.level);
+  level = Object.keys(LogLevels).findIndex((item) => item === this.getConfig().level);
 
   private _init(config: LogConfig) {
     console.debug(`init Log: ${config.level}`);
@@ -35,24 +39,24 @@ export class LogWriter {
       return;
     }
 
-    this.config = {
-      ...defaultLogConfig,
+    this._config = {
+      ...getDefaultLogConfig(),
       ...config,
     };
 
-    this.level = Object.keys(LogLevels).findIndex((item) => item === this.config.level);
+    this.level = Object.keys(LogLevels).findIndex((item) => item === this.getConfig().level);
     if (this.fileHandle > 0) {
       fs.closeSync(this.fileHandle);
       this.fileHandle = 0;
     }
-    if (this.config.outToFile) {
-      if (!fs.existsSync(this.config.folder)) {
-        fs.mkdirSync(this.config.folder, { recursive: true });
+    if (this.getConfig().outToFile) {
+      if (!fs.existsSync(this.getConfig().folder)) {
+        fs.mkdirSync(this.getConfig().folder, { recursive: true });
       }
 
       const filename = path.join(
-        this.config.folder,
-        (this.config.filename || defaultLogConfig.filename).replace('%index%', '0')
+        this.getConfig().folder,
+        this.getConfig().filename.replace('%index%', '0')
       );
       this.fileHandle = fs.openSync(filename, 'a+');
       if (this.fileHandle <= 0) {
@@ -71,14 +75,14 @@ export class LogWriter {
 
     const stats = fs.fstatSync(this.fileHandle);
     this.savedSize = stats['size'];
-    if (this.savedSize >= this.config.maxSize) {
+    if (this.savedSize >= this.getConfig().maxSize) {
       fs.closeSync(this.fileHandle);
-      const filename = this.config.filename || defaultLogConfig.filename;
+      const filename = this.getConfig().filename;
       if (filename.indexOf('%index%') >= 0) {
-        const maxCount = this.config.maxCount || 5;
+        const maxCount = this.getConfig().maxCount || 5;
         for (let i = maxCount - 1; i >= 1; i--) {
-          const nameFrom = path.join(this.config.folder, filename.replace('%index%', (i - 1).toString()));
-          const nameTo = path.join(this.config.folder, filename.replace('%index%', i.toString()));
+          const nameFrom = path.join(this.getConfig().folder, filename.replace('%index%', (i - 1).toString()));
+          const nameTo = path.join(this.getConfig().folder, filename.replace('%index%', i.toString()));
           if (fs.existsSync(nameFrom)) {
             fs.renameSync(nameFrom, nameTo);
           }
@@ -86,7 +90,7 @@ export class LogWriter {
       } else if (fs.existsSync(filename)) {
         fs.unlinkSync(filename);
       }
-      const nameCurrent = path.join(this.config.folder, filename.replace('%index%', '0'));
+      const nameCurrent = path.join(this.getConfig().folder, filename.replace('%index%', '0'));
       this.fileHandle = fs.openSync(nameCurrent, 'a+');
       this.savedSize = 0;
       if (this.fileHandle <= 0) {
@@ -161,12 +165,12 @@ export class LogWriter {
       }
       return;
     }
-    if (!this.config.outToFile && !this.config.outToConsole) {
+    if (!this.getConfig().outToFile && !this.getConfig().outToConsole) {
       return;
     }
     if (this.savedSize == -1) {
       // all config must be in process.env
-      this._init(defaultLogConfig);
+      this._init(getDefaultLogConfig());
     }
 
     const s = util.format(...messageList);
@@ -177,8 +181,8 @@ export class LogWriter {
       console.warn('Log string is too long: ' + s.length);
     }
     const msg = `${this.timestamp()} ${level} [${pid}${uuid}] ${ns}${s.length > 1024 ? s.substring(0, 1024) : s}`;
-    if (this.config.outToFile) {
-      if (this.savedSize >= this.config.maxSize) {
+    if (this.getConfig().outToFile) {
+      if (this.savedSize >= this.getConfig().maxSize) {
         this.checkSize();
       }
       if (this.fileHandle <= 0) {
@@ -190,7 +194,7 @@ export class LogWriter {
         this.savedSize += msgBuf.byteLength;
       }
     }
-    if (this.config.outToConsole) {
+    if (this.getConfig().outToConsole) {
       // background color on Chrome's console, error: 250 230 230, warn: 255 241 212
       if (typeof color === 'undefined' && level !== 'ERROR' && level !== 'WARN') {
         console.log(msg);

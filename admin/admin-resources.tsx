@@ -9,7 +9,7 @@ import {
   NotificationColor,
   NotificationMessage,
   RefProps,
-  ProgressUpdateProps,
+  ProgressHookProps,
   uploadFile,
   Progress,
   InputWithTitle,
@@ -247,7 +247,7 @@ export const AdminResourcesPage = () => {
     domLog.value = <pre>{JSON.stringify(dataResponse, null, 2)}</pre>;
   };
 
-  const progressUpdate: ProgressUpdateProps = {};
+  const progressUpdate: ProgressHookProps = {};
   const onUploadProgress = (percentage: number, chunkNumber: number, totalChunks: number) => {
     progressUpdate.onProgress?.(percentage, chunkNumber, totalChunks);
   };
@@ -287,7 +287,7 @@ export const AdminResourcesPage = () => {
       </div>
       {domUpdate.node}
       {domLog.node}
-      <Progress update={progressUpdate} />
+      <Progress hook={progressUpdate} />
       <input type='file' class='d-none up-file' onChange={onFileChange} accept='.*' />
     </div>
   );

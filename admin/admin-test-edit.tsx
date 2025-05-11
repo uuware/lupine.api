@@ -1,5 +1,6 @@
 import {
   CssProps,
+  EditableLabel,
   HtmlVar,
   ModalWindow,
   NotificationColor,
@@ -7,69 +8,9 @@ import {
   PagingLink,
   RefProps,
   ToggleSwitch,
-  ToggleSwitchUpdateProps,
+  ToggleSwitchSize,
 } from 'lupine.js';
-
-export type EditLabelProps = {
-  text: string;
-  type?: 'text' | 'number' | 'date' | 'datetime' | 'time';
-  save?: (value: string) => void;
-};
-export const EditLabel = (props: EditLabelProps) => {
-  let editFlag = false;
-  let oldValue = props.text;
-  const onDblClick = () => {
-    if (editFlag) return;
-    editFlag = true;
-    const el = ref.$('input.edit-label');
-    oldValue = el.value;
-    el.removeAttribute('readonly');
-    el.classList.remove('not-editable');
-    el.setSelectionRange(0, 0);
-  };
-  const reset = () => {
-    const el = ref.$('input.edit-label');
-    el.setAttribute('readonly', 'readonly');
-    el.classList.add('not-editable');
-    oldValue = '';
-    editFlag = false;
-    return el;
-  };
-  const onKeyDown = (ev: KeyboardEvent) => {
-    if (!editFlag) return;
-    if (ev.key === 'Enter') {
-      onBlur();
-    } else if (ev.key === 'Escape') {
-      const el = ref.$('input.edit-label');
-      el.value = oldValue;
-      reset();
-    }
-  };
-  const onBlur = () => {
-    const el = reset();
-    props.save?.(el.value);
-    editFlag = false;
-  };
-  const css: CssProps = {
-    '.not-editable': {
-      borderColor: 'transparent',
-      boxShadow: 'unset',
-    },
-  };
-  const ref: RefProps = {};
-  return (
-    <div css={css} ref={ref}>
-      <input
-        class='input-base edit-label not-editable'
-        onDblClick={onDblClick}
-        onKeyDown={onKeyDown}
-        value={props.text}
-        onBlur={onBlur}
-        readOnly
-      />
-    </div>
-  );
-};
+import { ToggleBaseHookProps } from 'lupine.js/src/components/toggle-base';
 
 type SampleDataProps = {
   id: number;
@@ -177,7 +118,7 @@ export const BookEditItem = (props: { item: SampleDataProps; update: SampleDataU
     const name = ref.$('input.name').value;
     const info = ref.$('input.info').value;
     if (name && info) {
-      const newItem = updateSampleData({ id: props.item.id, name, info, checked: switchUpdate.getValue!() });
+      const newItem = updateSampleData({ id: props.item.id, name, info, checked: switchUpdate.getChecked!() });
       props.item.name = newItem.name;
       props.item.info = newItem.info;
       props.item.checked = newItem.checked;
@@ -187,7 +128,7 @@ export const BookEditItem = (props: { item: SampleDataProps; update: SampleDataU
     NotificationMessage.sendMessage('Please input name and info', NotificationColor.Error);
     return null;
   };
-  const switchUpdate: ToggleSwitchUpdateProps = {};
+  const switchUpdate: ToggleBaseHookProps = {};
   return (
     <div ref={ref} css={css} class='sample-data'>
       <div class='row-box'>
@@ -204,7 +145,7 @@ export const BookEditItem = (props: { item: SampleDataProps; update: SampleDataU
       </div>
       <div class='row-box mt-m'>
         <div class='lable'>Checked: </div>
-        <ToggleSwitch update={switchUpdate} checked={props.item.checked} />
+        <ToggleSwitch size={ToggleSwitchSize.Small} hook={switchUpdate} checked={props.item.checked} />
       </div>
     </div>
   );
@@ -262,7 +203,7 @@ export const BookShowItem = (props: { item: SampleDataProps }) => {
           <div class='lable'>Name: </div>
           <div>{item.name}</div>
           <div class='px-m'>Double Click to edit: </div>
-          <EditLabel text={item.name} save={saveText} type='text' />
+          <EditableLabel text={item.name} save={saveText} type='text' />
         </div>
         <div class='row-box'>
           <div class='lable'>Info: </div>

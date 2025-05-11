@@ -1,4 +1,18 @@
-import { CssProps, HtmlVar, RefProps, TextGlow, TextWave, updateStyles } from 'lupine.js';
+import {
+  HtmlVar,
+  PlayButton,
+  PlayButtonSize,
+  Progress,
+  ProgressHookProps,
+  RefProps,
+  Spinner01,
+  Spinner02,
+  Spinner03,
+  SpinnerSize,
+  TextGlow,
+  TextWave,
+  updateStyles,
+} from 'lupine.js';
 
 const TestButton = () => {
   const onClick = async () => {
@@ -145,7 +159,31 @@ const TestStyles = () => {
   );
 };
 
-export const AdminTestPage = () => {
+const TestProgress = () => {
+  const progressHook: ProgressHookProps = {};
+  return (
+    <div>
+      <div class='row-box mb-s'>
+        <Progress hook={progressHook} />
+      </div>
+      <button
+        class='button-base button-m m-m'
+        onClick={async () => {
+          progressHook.onShow?.(true, 'Test Progress');
+          for (let i = 0; i < 100; i++) {
+            progressHook.onProgress?.(i / 100, 1, 1);
+            await new Promise((resolve) => setTimeout(resolve, 10));
+          }
+          progressHook.onShow?.(false);
+        }}
+      >
+        Test Progress
+      </button>
+    </div>
+  );
+};
+
+export const AdminTestAnimationsPage = () => {
   const msg1: CommunicationProps = {
     update: {
       send: (obj: { id: string; message: string }) => {
@@ -166,7 +204,6 @@ export const AdminTestPage = () => {
         <div>Test the Button's onClick event.</div>
         <TestButton />
       </div>
-
       <div class='pt-m'>
         <br />
         <hr />
@@ -174,7 +211,6 @@ export const AdminTestPage = () => {
         <div>Test the Input's onChange event.</div>
         <TestInput />
       </div>
-
       <div class='pt-m'>
         <br />
         <hr />
@@ -182,7 +218,6 @@ export const AdminTestPage = () => {
         <div>Test Mouse event.</div>
         <TestMouse />
       </div>
-
       <div class='pt-m'>
         <br />
         <hr />
@@ -191,7 +226,6 @@ export const AdminTestPage = () => {
         <TestCommunication update={msg1.update} />
         <TestCommunication update={msg2.update} />
       </div>
-
       <div class='pt-m'>
         <br />
         <hr />
@@ -199,7 +233,6 @@ export const AdminTestPage = () => {
         <div>Test Style.</div>
         <TestStyles />
       </div>
-
       <div class='pt-m'>
         <br />
         <hr />
@@ -207,7 +240,6 @@ export const AdminTestPage = () => {
         <div>Test Text Glow.</div>
         <TextGlow text='This is a sample of Text Glow' />
       </div>
-
       <div class='pt-m'>
         <br />
         <hr />
@@ -215,6 +247,38 @@ export const AdminTestPage = () => {
         <div>Test Text Wave.</div>
         <TextWave text='This is a sample of Text Wave' />
       </div>
+
+      <div class='pt-m'>
+        PlayButton
+        <PlayButton size={PlayButtonSize.Small} />
+        <PlayButton size={PlayButtonSize.Medium} />
+        <PlayButton size={PlayButtonSize.Large} />
+      </div>
+
+      <div class='p2'>
+        <div class='row-box mb-s'>
+          <Spinner01 size={SpinnerSize.Small} />
+          <Spinner01 size={SpinnerSize.Medium} />
+          <Spinner01 size={SpinnerSize.Large} />
+          <Spinner01 size={SpinnerSize.LargeLarge} />
+        </div>
+        <div class='row-box mb-s'>
+          <Spinner02 size={SpinnerSize.Small} />
+          <Spinner02 size={SpinnerSize.Medium} />
+          <Spinner02 size={SpinnerSize.Large} />
+          <Spinner02 size={SpinnerSize.LargeLarge} />
+        </div>
+        <div class='row-box mb-s'>
+          <Spinner03 size={SpinnerSize.Small} />
+          <Spinner03 size={SpinnerSize.Medium} />
+          <Spinner03 size={SpinnerSize.Large} />
+          <Spinner03 size={SpinnerSize.LargeLarge} />
+        </div>
+
+        <div class='row-box mb-s'>
+          <TestProgress />
+        </div>
+      </div>{' '}
     </div>
   );
 };

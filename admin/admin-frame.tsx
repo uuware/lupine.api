@@ -18,14 +18,15 @@ import { CreateTablesPage, RunSqlPage } from './admin-db';
 import { TableListPage } from './admin-table-list';
 import { adminFrameProps } from './admin-frame-props';
 import { AdminMenuPage } from './admin-menu-list';
-import { TestThemesPage } from './test-themes';
+import { TestThemesPage } from './admin-test-themes';
 import { AdminPagePage } from './admin-page-list';
 import { AdminPerformancePage } from './admin-performance';
 import { AdminReleasePage } from './admin-release';
-import { AdminTestPage } from './admin-test';
+import { AdminTestAnimationsPage } from './admin-test-animations';
 import { AdminTestEditPage } from './admin-test-edit';
 import { AdminResourcesPage } from './admin-resources';
 import { AdminTokensPage } from './admin-tokens';
+import { TestComponentPage } from './admin-test-component';
 
 export type AdminFrameProps = {
   children: ComponentChildren;
@@ -104,9 +105,14 @@ export const AdminFrame = (props: AdminFrameProps) => {
           js: () => addPanel('Test Themes', TestThemesPage()),
         },
         {
-          text: 'Test',
+          text: 'Test Component',
           url: '',
-          js: () => addPanel('Test', AdminTestPage()),
+          js: () => addPanel('Test Component', TestComponentPage()),
+        },
+        {
+          text: 'Test Animations',
+          url: '',
+          js: () => addPanel('Test Animations', AdminTestAnimationsPage()),
         },
         {
           text: 'Test Edit',

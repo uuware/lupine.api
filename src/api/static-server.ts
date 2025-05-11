@@ -97,6 +97,9 @@ export class StaticServer {
 
       // now we need to send finalPath file. If finalPath doesn't exist, it will cause error and jump to serverSideRenderPage
       try {
+        const allowOrigin = (req.headers.origin && req.headers.origin !== 'null') ? req.headers.origin : '*';
+        res.setHeader('Access-Control-Allow-Origin', allowOrigin);
+
         await this.sendFile(finalPath, urlSplit[0], res);
       } catch (err: any) {
         this.logger.warn(`File not found: ${urlSplit[0]}`);

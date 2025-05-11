@@ -25,7 +25,7 @@ export const SaveMenu = (props: {
   package: string;
 }) => {
   return (
-    <div className='save-menu'>
+    <div class='save-menu'>
       <div class='row-box mb-s'>
         <div class='w-7'>Menu Id:</div>
         <input type='text' id='s_menuId' value={props.menuId} class='input-base w-20' readonly={props.menuIdReadonly} />

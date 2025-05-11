@@ -61,7 +61,7 @@ export const RunSqlPage = () => {
     <div ref={ref} css={css}>
       <div>Run SQL:</div>
       <div>
-        <textarea class='sql'>SELECT 'Hello world'</textarea>
+        <textarea class='input-base sql'>SELECT 'Hello world'</textarea>
       </div>
       <div>
         <button onClick={onClick} class='button-base'>

@@ -163,6 +163,8 @@ export const serverSideRenderPage = async (
   const page = await _lupineJs.generatePage(props, clientDelivery);
   // console.log(`=========load lupin: `, content);
 
+  const allowOrigin = (req.headers.origin && req.headers.origin !== 'null') ? req.headers.origin : '*';
+  res.setHeader('Access-Control-Allow-Origin', allowOrigin);
   res.writeHead(200, { 'Content-Type': 'text/html' });
   // res.writeHead(200, { 'Content-Type': 'text/html', 'Content-Encoding': 'gzip' });
 

@@ -34,6 +34,11 @@ export const setAccessControlAllowHost = (allowHosts: string[]) => {
   accessControlAllowHosts = allowHosts;
 };
 
+let SERVER_NAME: string = 'nginx/1.19.2';
+export const setServerName = (serverName: string) => {
+  SERVER_NAME = serverName;
+};
+
 let lastRequestTime = new Date().getTime();
 
 // type ProcessRequest = (req: ServerRequest, res: ServerResponse) => void;
@@ -169,9 +174,10 @@ export class WebListener {
         logger.debug(`url: ${url}, Request body length: ${body.length}, contentType: ${contentType}`);
         req.locals.body = body;
 
+        res.setHeader('Server', SERVER_NAME);
         if (accessControlAllowHosts.includes(host)) {
-          const accessControlAllowOrigin = req.headers.origin || '*';
-          res.setHeader('Access-Control-Allow-Origin', accessControlAllowOrigin);
+          const allowOrigin = (req.headers.origin && req.headers.origin !== 'null') ? req.headers.origin : '*';
+          res.setHeader('Access-Control-Allow-Origin', allowOrigin);
           res.setHeader('Access-Control-Allow-Credentials', 'true');
         }
 
