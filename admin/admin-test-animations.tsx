@@ -1,4 +1,6 @@
 import {
+  ButtonPushAnimation,
+  ButtonPushAnimationSize,
   HtmlVar,
   PlayButton,
   PlayButtonSize,
@@ -276,9 +278,25 @@ export const AdminTestAnimationsPage = () => {
         </div>
 
         <div class='row-box mb-s'>
+          <ButtonPushAnimation text='Test ButtonPushAnimation' size={ButtonPushAnimationSize.SmallSmall} />
+        </div>
+        <div class='row-box mb-s'>
+          <ButtonPushAnimation text='Test ButtonPushAnimation' size={ButtonPushAnimationSize.Small} />
+        </div>
+        <div class='row-box mb-s'>
+          <ButtonPushAnimation text='Test ButtonPushAnimation' size={ButtonPushAnimationSize.Medium} />
+        </div>
+        <div class='row-box mb-s'>
+          <ButtonPushAnimation text='Test ButtonPushAnimation' size={ButtonPushAnimationSize.Large} />
+        </div>
+        <div class='row-box mb-s'>
+          <ButtonPushAnimation text='Test ButtonPushAnimation' size={ButtonPushAnimationSize.LargeLarge} />
+        </div>
+
+        <div class='row-box mb-s'>
           <TestProgress />
         </div>
-      </div>{' '}
+      </div>
     </div>
   );
 };
