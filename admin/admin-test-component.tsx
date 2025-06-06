@@ -16,7 +16,7 @@ import {
   ButtonSize,
   ButtonHookProps,
   RefProps,
-} from 'lupine.js';
+} from 'lupine.web';
 
 const TestWindows = () => {
   const doModal = (closeWhenClickOutside: boolean) => {

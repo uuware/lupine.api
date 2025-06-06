@@ -1,4 +1,4 @@
-import { CssProps, NotificationMessage, RefProps, getRenderPageProps } from 'lupine.js';
+import { CssProps, NotificationMessage, RefProps, getRenderPageProps } from 'lupine.web';
 import { AdminTableData } from './admin-table-data';
 import { adminFrameProps } from './admin-frame-props';
 import { AdminPageEditPage } from './admin-page-edit';

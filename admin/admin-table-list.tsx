@@ -6,7 +6,7 @@ import {
   RefProps,
   getRenderPageProps,
   mountComponents,
-} from 'lupine.js';
+} from 'lupine.web';
 import { adminFrameProps } from './admin-frame-props';
 import { TableDataPage } from './admin-table-data';
 

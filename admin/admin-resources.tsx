@@ -13,7 +13,7 @@ import {
   uploadFile,
   Progress,
   InputWithTitle,
-} from 'lupine.js';
+} from 'lupine.web';
 
 // https://www.toptal.com/designers/htmlarrows/symbols/
 const ResourcesList = (props: {

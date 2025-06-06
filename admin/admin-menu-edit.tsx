@@ -1,4 +1,4 @@
-import { CssProps, DomUtils, getRenderPageProps, ModalWindow, NotificationMessage, RefProps } from 'lupine.js';
+import { CssProps, DomUtils, getRenderPageProps, ModalWindow, NotificationMessage, RefProps } from 'lupine.web';
 
 const fetchTableList = async () => {
   const data = await getRenderPageProps().renderPageFunctions.fetchData('/api/admin/db/tables');

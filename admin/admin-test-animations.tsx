@@ -14,7 +14,7 @@ import {
   TextGlow,
   TextWave,
   updateStyles,
-} from 'lupine.js';
+} from 'lupine.web';
 
 const TestButton = () => {
   const onClick = async () => {

@@ -1,4 +1,4 @@
-import { CssProps } from 'lupine.js';
+import { CssProps } from 'lupine.web';
 import { DesignBlockBox } from './design-block-box';
 import { BlockTitle } from './block-title';
 

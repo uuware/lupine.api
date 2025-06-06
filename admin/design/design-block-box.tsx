@@ -1,4 +1,4 @@
-import { bindGlobalStyles, ComponentChildren, CssProps, PageProps } from 'lupine.js';
+import { bindGlobalStyles, ComponentChildren, CssProps } from 'lupine.web';
 import { dragData, findTopBlock } from './drag-data';
 
 export type BlockBoxProps = {

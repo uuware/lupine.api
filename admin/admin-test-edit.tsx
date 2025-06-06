@@ -7,10 +7,10 @@ import {
   NotificationMessage,
   PagingLink,
   RefProps,
+  ToggleBaseHookProps,
   ToggleSwitch,
   ToggleSwitchSize,
-} from 'lupine.js';
-import { ToggleBaseHookProps } from 'lupine.js/src/components/toggle-base';
+} from 'lupine.web';
 
 type SampleDataProps = {
   id: number;

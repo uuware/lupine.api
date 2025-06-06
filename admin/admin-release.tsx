@@ -6,7 +6,7 @@ import {
   NotificationColor,
   NotificationMessage,
   RefProps,
-} from 'lupine.js';
+} from 'lupine.web';
 
 const ReleaseList = (props: { result: any; onUpdate: () => void }) => {
   const ref: RefProps = {

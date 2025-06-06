@@ -1,4 +1,4 @@
-import { getRenderPageProps, HtmlVar, NotificationColor, NotificationMessage, RefProps } from 'lupine.js';
+import { getRenderPageProps, HtmlVar, NotificationColor, NotificationMessage, RefProps } from 'lupine.web';
 
 export const AdminPerformancePage = () => {
   const fetchData = async () => {

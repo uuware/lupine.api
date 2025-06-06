@@ -1,4 +1,4 @@
-import { CssProps, DomUtils, getRenderPageProps, ModalWindow, NotificationMessage, PopupMenu, RefProps } from 'lupine.js';
+import { CssProps, DomUtils, getRenderPageProps, ModalWindow, NotificationMessage, PopupMenu, RefProps } from 'lupine.web';
 import { DesignBlockBox } from './design/design-block-box';
 import { BlockTitle } from './design/block-title';
 import { BlockParagraph } from './design/block-paragraph';

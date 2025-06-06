@@ -12,7 +12,7 @@ import {
   TabsPageProps,
   VNode,
   getWebVersion,
-} from 'lupine.js';
+} from 'lupine.web';
 import { adminCss } from './admin-css';
 import { CreateTablesPage, RunSqlPage } from './admin-db';
 import { TableListPage } from './admin-table-list';

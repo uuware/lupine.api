@@ -1,4 +1,4 @@
-import { CssProps } from 'lupine.js';
+import { CssProps } from 'lupine.web';
 
 export type BlockGridProps = {};
 export const BlockGrid = (props: BlockGridProps) => {

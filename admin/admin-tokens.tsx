@@ -8,7 +8,7 @@ import {
   NotificationMessage,
   PagingLink,
   RefProps,
-} from 'lupine.js';
+} from 'lupine.web';
 
 export type TokenProps = {
   token: string;

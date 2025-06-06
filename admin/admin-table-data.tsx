@@ -6,7 +6,7 @@ import {
   bindGlobalStyles,
   getDefaultPageLimit,
   getRenderPageProps,
-} from 'lupine.js';
+} from 'lupine.web';
 
 const loadData = async (
   onLinkClick: (index: number) => Promise<void>,

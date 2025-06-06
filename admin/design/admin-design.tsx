@@ -1,4 +1,4 @@
-import { CssProps, PageProps } from 'lupine.js';
+import { CssProps, PageProps } from 'lupine.web';
 import { DesignBlockBox } from './design-block-box';
 import { dragData, findTopBlock } from './drag-data';
 import { BlockGrid } from './block-grid';

@@ -1,4 +1,4 @@
-import { ComponentChildren, CssProps } from 'lupine.js';
+import { ComponentChildren, CssProps } from 'lupine.web';
 import { DesignBlockBox } from './design-block-box';
 
 export type BlockGridProps = {

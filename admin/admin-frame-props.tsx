@@ -1,4 +1,4 @@
-import { TabsUpdateProps } from 'lupine.js';
+import { TabsUpdateProps } from 'lupine.web';
 
 const adminFrameProps = {
   maxWidthMobileMenu: '800px',
